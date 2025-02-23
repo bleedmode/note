@@ -1,0 +1,1661 @@
+/* Reset box sizing and margins */
+* {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+}
+
+/* Base container - full width */
+.app {
+  width: 100vw;
+  min-height: 100vh;
+  display: flex;
+  background-color: #f8fafc;
+}
+
+/* Content area - full width */
+.tab-content {
+  flex: 1;
+  width: 100%;
+  padding: 0;
+  background-color: transparent;
+  border-radius: 0;
+  box-shadow: none;
+}
+
+/* Add these new styles at the end of the file */
+.add-task-form {
+  display: flex;
+  gap: 10px;
+  margin-bottom: 20px;
+}
+
+.add-task-form input {
+  flex: 1;
+  padding: 8px;
+  border: 1px solid #ddd;
+  border-radius: 4px;
+}
+
+.add-task-form button {
+  padding: 8px 16px;
+  background-color: #2196f3;
+  color: white;
+  border: none;
+  border-radius: 4px;
+  cursor: pointer;
+}
+
+.add-task-form button:hover {
+  background-color: #1976d2;
+}
+
+/* Update task item styling */
+.task-item {
+  border-bottom: 1px solid #e2e8f0;
+  margin-bottom: 0;
+  background-color: transparent;
+  transition: background-color 0.2s ease;
+  position: relative;
+}
+
+.task-item:last-child {
+  border-bottom: none;
+}
+
+/* Update task main styling */
+.task-main {
+  padding: 10px 0;
+  display: flex;
+  align-items: flex-start;
+  min-width: 0;
+  min-height: 38px;
+  gap: 8px;
+}
+
+.task-main:hover {
+  background-color: transparent;
+}
+
+/* Update task content alignment */
+.task-content {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  min-width: 0;
+  flex: 1;
+  min-height: 28px;
+  padding: 2px 0;
+}
+
+/* Update checkbox container and alignment */
+.task-content input[type="checkbox"] {
+  flex-shrink: 0;
+  width: 16px;
+  height: 16px;
+  margin: 0;
+  position: relative;
+  top: 5px; /* Align with first line of text */
+}
+
+.task-item.completed .task-text {
+  color: #94a3b8;
+  text-decoration: line-through;
+}
+
+/* Hide edit button by default */
+.edit-button {
+  color: #64748b; /* slate-500 */
+  opacity: 0; /* Hide by default */
+  transition: all 0.2s ease;
+  font-size: 14px;
+  padding: 4px;
+  cursor: pointer;
+}
+
+/* Show edit button on task hover */
+.task-item:hover .edit-button {
+  opacity: 0.5;
+}
+
+/* Edit button hover state */
+.task-item:hover .edit-button:hover {
+  opacity: 1;
+  color: #0f172a; /* slate-900 */
+}
+
+/* Add these new styles at the end of the file */
+.task-type-select {
+  padding: 8px;
+  border: 1px solid #ddd;
+  border-radius: 4px;
+  background-color: white;
+}
+
+/* Update grid layout - remove separator */
+.sections {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 48px;
+  width: 100%;
+  position: relative;
+}
+
+/* Remove the vertical separator */
+.sections::after {
+  display: none; /* Hide the separator */
+}
+
+/* Section containers */
+.section {
+  background-color: transparent;
+  padding: 20px 0;
+  border: none;
+  box-shadow: none;
+  width: 100%;
+}
+
+/* Remove duplicate section styles */
+.work .todo-section,
+.work .waiting-section,
+.private .todo-section,
+.private .waiting-section {
+  width: 100%; /* Ensure full width in both tabs */
+}
+
+/* Update section header styles */
+.section h2 {
+  color: #0f172a;
+  font-size: 1rem;
+  font-weight: 600;
+  margin-bottom: 24px;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.section h2 span[role="img"] {
+  font-size: 1.1em;
+  display: flex;
+  align-items: center;
+  line-height: 1;
+  transform: translateY(-1px); /* Fine-tune vertical alignment */
+}
+
+/* Update section styling to be consistent */
+.section {
+  background-color: transparent;
+  padding: 20px 0;
+  border: none;
+  box-shadow: none;
+  width: 100%;
+}
+
+/* Update task count styles */
+.task-count {
+  background-color: transparent;
+  color: #94a3b8; /* Changed from #64748b (slate-400 instead of slate-500) */
+  width: 20px;
+  height: 20px;
+  border-radius: 50%;
+  font-size: 0.75rem;
+  font-weight: 500;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0;
+  margin-left: 4px;
+  border: 1px solid #cbd5e1; /* Changed from #94a3b8 (slate-300 instead of slate-400) */
+  margin-top: -1px; /* Fine-tune vertical alignment with text */
+}
+
+/* Update the tab-specific task count colors */
+.work .todo-section .task-count,
+.work .waiting-section .task-count,
+.private .todo-section .task-count,
+.private .waiting-section .task-count {
+  color: #94a3b8; /* slate-400 */
+  border-color: #cbd5e1; /* slate-300 */
+}
+
+/* Update quick add input focus to be consistent */
+.quick-add-input:focus {
+  outline: none;
+  border-color: #0f172a; /* slate-900 */
+  box-shadow: 0 0 0 3px rgba(15, 23, 42, 0.1);
+}
+
+/* Remove the tab-specific input focus colors */
+.work .todo-section .quick-add-input:focus,
+.work .waiting-section .quick-add-input:focus,
+.private .todo-section .quick-add-input:focus,
+.private .waiting-section .quick-add-input:focus {
+  border-color: #0f172a; /* slate-900 */
+  box-shadow: 0 0 0 3px rgba(15, 23, 42, 0.1);
+}
+
+/* Add these new styles */
+.archive-soon {
+  opacity: 0.7;
+  background-color: #fff3e0;
+}
+
+.archive-notice {
+  font-size: 0.75rem; /* 12px */
+  color: #ff9800;
+  margin-left: 8px;
+  font-style: italic;
+}
+
+/* Update existing animation */
+@keyframes taskComplete {
+  0% {
+    transform: scale(1);
+    background-color: white;
+  }
+  50% {
+    transform: scale(1.02);
+    background-color: #e8f5e9;
+  }
+  100% {
+    transform: scale(1);
+    background-color: white;
+  }
+}
+
+.task-item {
+  transition: all 0.2s ease;
+  background-color: white;
+}
+
+/* Update completed task styling */
+.task-item.completed {
+  /* Remove the background gradient */
+  transition: all 0.2s ease;
+}
+
+/* Keep the text styling for completed tasks */
+.task-item.completed .task-text {
+  color: #94a3b8;
+  text-decoration: line-through;
+}
+
+/* Add these new styles */
+.search-bar {
+  width: 100%;
+  margin: 0 0 20px 0;
+}
+
+.search-input {
+  width: 100%;
+  padding: 12px 16px;
+  border: 1px solid #e2e8f0; /* slate-200 */
+  border-radius: 8px;
+  font-size: 0.875rem; /* 14px */
+  background-color: #ffffff;
+  transition: all 0.2s ease;
+}
+
+.search-input:focus {
+  outline: none;
+  border-color: #0f172a; /* slate-900 */
+  box-shadow: 0 0 0 3px rgba(15, 23, 42, 0.1); /* slate-900 with opacity */
+}
+
+.empty-state {
+  text-align: center;
+  padding: 20px;
+  color: #666;
+  font-style: italic;
+}
+
+/* Update responsive layout */
+@media (max-width: 768px) {
+  .sections {
+    grid-template-columns: 1fr;
+    gap: 32px; /* Reduced gap for mobile */
+  }
+  
+  /* Hide vertical separator on mobile */
+  .sections::after {
+    display: none;
+  }
+  
+  .section {
+    width: 100%;
+  }
+}
+
+/* Header styles */
+h1 {
+  display: none;
+}
+
+/* Update task actions container */
+.task-actions {
+  display: flex;
+  align-items: center;
+  gap: 4px; /* Reduce gap between buttons */
+}
+
+/* Update action buttons spacing */
+.action-button {
+  opacity: 0;
+  transition: all 0.2s ease;
+  font-size: 16px; /* Larger icon size */
+  padding: 6px;
+  cursor: pointer;
+  width: 28px; /* Slightly larger button */
+  height: 28px; /* Slightly larger button */
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 4px;
+  border: none; /* Remove default button border */
+  background: none; /* Remove default button background */
+  outline: none; /* Remove outline */
+}
+
+.action-button:focus {
+  outline: none; /* Remove focus outline */
+}
+
+/* Update collapse button to match action buttons */
+.collapse-button {
+  color: #64748b; /* slate-500 */
+  padding: 6px;
+  width: 28px; /* Match action button size */
+  height: 28px; /* Match action button size */
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 4px;
+  transition: all 0.2s ease;
+  font-size: 16px; /* Match action button font size */
+  border: none;
+  background: none;
+  outline: none;
+}
+
+.collapse-button:focus {
+  outline: none;
+}
+
+/* Update subtask progress margin */
+.subtask-progress {
+  margin-right: 4px;
+}
+
+/* Add transition for subtasks container */
+.subtasks {
+  transition: all 0.2s ease;
+}
+
+/* Add styles for edit mode */
+.edit-container {
+  flex: 1;
+  min-width: 0;
+}
+
+.edit-task-input {
+  flex: 1;
+  width: 100%;
+  padding: 4px 8px;
+  border: 1px solid #e2e8f0;
+  border-radius: 4px;
+  font-size: inherit;
+  font-family: inherit;
+  background-color: white;
+  min-width: 0;
+  pointer-events: auto; /* Ensure input receives all mouse events */
+}
+
+.edit-task-input:focus {
+  outline: none;
+  border-color: #0f172a;
+  box-shadow: 0 0 0 2px rgba(15, 23, 42, 0.1);
+}
+
+/* New container for edit mode to ensure the input is fully clickable */
+.task-edit-wrapper {
+  width: 100%;
+  position: relative;
+  z-index: 9999;
+}
+
+/* Base font size */
+body {
+  font-size: 14px;
+  line-height: 1.4;
+}
+
+/* Edit button specific styles */
+.edit-button {
+  color: #64748b; /* slate-500 */
+}
+
+/* Delete button specific styles */
+.delete-button {
+  color: #ef4444; /* red-500 */
+}
+
+/* Show buttons on task hover */
+.task-item:hover .action-button {
+  opacity: 0.5;
+}
+
+/* Button hover states */
+.task-item:hover .edit-button:hover {
+  opacity: 1;
+  color: #0f172a; /* slate-900 */
+}
+
+.task-item:hover .delete-button:hover {
+  opacity: 1;
+  color: #dc2626; /* red-600 */
+}
+
+.task-wrapper {
+  flex: 1;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+/* Sidebar styles */
+.sidebar {
+  width: 200px;
+  background-color: #f8fafc;
+  border-right: none;
+  padding: 16px 8px; /* Reduced horizontal padding */
+  display: flex;
+  flex-direction: column;
+  gap: 24px; /* Increased gap between sections */
+}
+
+.nav-section {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+/* Update nav group styles */
+.nav-group {
+  display: flex;
+  flex-direction: column;
+}
+
+.nav-children {
+  margin-left: 16px; /* Reduced from 28px */
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+/* Update nav item styles */
+.nav-item {
+  width: 100%;
+  padding: 8px 12px;
+  border: none;
+  border-radius: 6px;
+  background: none;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  gap: 8px; /* Reduced from 12px */
+  color: #64748b;
+  transition: all 0.2s ease;
+  font-size: 0.875rem;
+}
+
+/* Add specific alignment for parent items */
+.nav-group > .nav-item {
+  padding-left: 24px; /* Reduced from 36px */
+}
+
+/* Style nested nav items */
+.nav-children .nav-item {
+  padding: 6px 8px; /* Reduced horizontal padding */
+  font-size: 0.8125rem;
+}
+
+/* Update icon alignment */
+.nav-icon {
+  width: 20px; /* Reduced from 24px */
+  text-align: center;
+}
+
+/* Update mobile styles */
+@media (max-width: 768px) {
+  .nav-children {
+    margin-left: 0;
+    flex-direction: row;
+    justify-content: center;
+    gap: 16px;
+  }
+
+  .nav-section {
+    gap: 8px;
+  }
+}
+
+/* Main content area */
+.main-content {
+  flex: 1;
+  padding: 32px;
+  background-color: white;
+}
+
+/* Mobile styles */
+@media (max-width: 768px) {
+  .app {
+    flex-direction: column;
+  }
+
+  .sidebar {
+    width: 100%;
+    border-right: none;
+    border-top: none; /* Remove the border on mobile too */
+    padding: 8px 16px;
+    flex-direction: row;
+    justify-content: space-around;
+    order: 1;
+  }
+
+  .main-content {
+    order: 0; /* Move to top */
+  }
+
+  .nav-item {
+    flex-direction: column;
+    gap: 4px;
+    padding: 8px;
+  }
+
+  .nav-text {
+    font-size: 0.75rem;
+  }
+}
+
+/* Add drag and drop styles */
+.tasks-list {
+  position: relative;
+}
+
+.tasks-list.drag-over {
+  background-color: #f1f5f9;
+  border-radius: 4px;
+  transition: background-color 0.2s ease;
+}
+
+/* Update subtasks container */
+.subtasks {
+  background-color: transparent;
+  border-top: none;
+  padding-left: 40px; /* Indent subtasks */
+  margin-bottom: 8px;
+}
+
+.subtask-item {
+  padding: 8px 0; /* Remove horizontal padding */
+  border-bottom: 1px solid #f1f5f9; /* slate-100 - lighter separator for subtasks */
+}
+
+.subtask-item:last-child {
+  border-bottom: none;
+}
+
+.subtask-content {
+  display: flex;
+  align-items: center;
+  flex: 1;
+  min-width: 0;
+  gap: 8px;
+}
+
+.subtask-text {
+  color: #475569; /* slate-600 */
+  font-size: 0.8125rem; /* 13px */
+}
+
+.subtask-input {
+  padding: 10px 16px 10px 44px;
+  background-color: #f8fafc;
+}
+
+/* Update checkbox styles */
+.task-main input[type="checkbox"],
+.subtask-item input[type="checkbox"] {
+  margin: 0;
+  width: 20px; /* Match plus sign circle */
+  height: 20px; /* Match plus sign circle */
+  cursor: pointer;
+  border-radius: 50%;
+  appearance: none;
+  border: 1px solid #475569;
+  background-color: white;
+  position: relative;
+  transition: all 0.2s ease;
+}
+
+/* Style the checked state */
+.task-main input[type="checkbox"]:checked,
+.subtask-item input[type="checkbox"]:checked {
+  background-color: #0f172a;
+  border-color: #0f172a;
+  border-width: 0;
+}
+
+/* Add checkmark */
+.task-main input[type="checkbox"]:checked::after,
+.subtask-item input[type="checkbox"]:checked::after {
+  content: '✓';
+  color: white;
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  font-size: 13px; /* Slightly larger checkmark */
+}
+
+/* Hover state */
+.task-main input[type="checkbox"]:hover,
+.subtask-item input[type="checkbox"]:hover {
+  border-color: #0f172a;
+}
+
+/* Update progress indicator */
+.subtask-progress {
+  padding: 2px 8px;
+  background-color: #f1f5f9; /* slate-100 */
+  color: #475569; /* slate-600 */
+  border-radius: 12px;
+  font-size: 0.75rem; /* 12px */
+  font-weight: 500;
+}
+
+/* Update quick add styles */
+.quick-add {
+  position: relative;
+  display: flex;
+  align-items: center;
+  margin-bottom: 16px;
+  min-height: 36px; /* Fixed height to prevent shifts */
+  will-change: contents; /* Optimize for changes */
+}
+
+.quick-add::before {
+  content: "+";
+  color: #1e3a8a; /* Dark blue */
+  font-size: 26px;
+  margin-right: 8px;
+  font-weight: 200;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  height: 20px;
+  width: 20px;
+  transition: all 0.2s ease;
+  padding: 0;
+  position: relative;
+  top: -2px;
+  line-height: 0;
+}
+
+.quick-add-input {
+  width: 100%;
+  padding: 8px 0;
+  border: none;
+  font-size: 0.875rem;
+  background-color: transparent;
+  color: #64748b;
+  line-height: 1;
+  -webkit-appearance: none;
+  -moz-appearance: none;
+  appearance: none;
+  outline: none !important;
+  box-shadow: none !important;
+  border-radius: 0;
+  transition: color 0.2s ease;
+  position: relative;
+  transform: translateZ(0); /* Create new stacking context */
+  -webkit-spell-check: false;
+  -ms-spell-check: false;
+}
+
+/* Hover states */
+.quick-add:hover .quick-add-input {
+  color: #1e3a8a;
+}
+
+/* Focus states - same as hover */
+.quick-add:focus-within .quick-add-input {
+  color: #1e3a8a;
+}
+
+/* Update responsive layout */
+@media (max-width: 768px) {
+  .sections {
+    grid-template-columns: 1fr;
+    gap: 32px; /* Reduced gap for mobile */
+  }
+  
+  /* Hide vertical separator on mobile */
+  .sections::after {
+    display: none;
+  }
+  
+  .section {
+    width: 100%;
+  }
+}
+
+/* Header styles */
+h1 {
+  display: none;
+}
+
+/* Update task actions container */
+.task-actions {
+  display: flex;
+  align-items: center;
+  gap: 4px; /* Reduce gap between buttons */
+}
+
+/* Update action buttons spacing */
+.action-button {
+  opacity: 0;
+  transition: all 0.2s ease;
+  font-size: 16px; /* Larger icon size */
+  padding: 6px;
+  cursor: pointer;
+  width: 28px; /* Slightly larger button */
+  height: 28px; /* Slightly larger button */
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 4px;
+  border: none; /* Remove default button border */
+  background: none; /* Remove default button background */
+  outline: none; /* Remove outline */
+}
+
+.action-button:focus {
+  outline: none; /* Remove focus outline */
+}
+
+/* Update collapse button to match action buttons */
+.collapse-button {
+  color: #64748b; /* slate-500 */
+  padding: 6px;
+  width: 28px; /* Match action button size */
+  height: 28px; /* Match action button size */
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 4px;
+  transition: all 0.2s ease;
+  font-size: 16px; /* Match action button font size */
+  border: none;
+  background: none;
+  outline: none;
+}
+
+.collapse-button:focus {
+  outline: none;
+}
+
+/* Update subtask progress margin */
+.subtask-progress {
+  margin-right: 4px;
+}
+
+/* Add transition for subtasks container */
+.subtasks {
+  transition: all 0.2s ease;
+}
+
+/* Add styles for edit mode */
+.edit-container {
+  flex: 1;
+  min-width: 0;
+}
+
+.edit-task-input {
+  flex: 1;
+  width: 100%;
+  padding: 4px 8px;
+  border: 1px solid #e2e8f0;
+  border-radius: 4px;
+  font-size: inherit;
+  font-family: inherit;
+  background-color: white;
+  min-width: 0;
+  pointer-events: auto; /* Ensure input receives all mouse events */
+}
+
+.edit-task-input:focus {
+  outline: none;
+  border-color: #0f172a;
+  box-shadow: 0 0 0 2px rgba(15, 23, 42, 0.1);
+}
+
+/* New container for edit mode to ensure the input is fully clickable */
+.task-edit-wrapper {
+  width: 100%;
+  position: relative;
+  z-index: 9999;
+}
+
+/* Base font size */
+body {
+  font-size: 14px;
+  line-height: 1.4;
+}
+
+/* Edit button specific styles */
+.edit-button {
+  color: #64748b; /* slate-500 */
+}
+
+/* Delete button specific styles */
+.delete-button {
+  color: #ef4444; /* red-500 */
+}
+
+/* Show buttons on task hover */
+.task-item:hover .action-button {
+  opacity: 0.5;
+}
+
+/* Button hover states */
+.task-item:hover .edit-button:hover {
+  opacity: 1;
+  color: #0f172a; /* slate-900 */
+}
+
+.task-item:hover .delete-button:hover {
+  opacity: 1;
+  color: #dc2626; /* red-600 */
+}
+
+.task-wrapper {
+  flex: 1;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+/* Sidebar styles */
+.sidebar {
+  width: 200px;
+  background-color: #f8fafc;
+  border-right: none;
+  padding: 16px 8px; /* Reduced horizontal padding */
+  display: flex;
+  flex-direction: column;
+  gap: 24px; /* Increased gap between sections */
+}
+
+.nav-section {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+/* Update nav group styles */
+.nav-group {
+  display: flex;
+  flex-direction: column;
+}
+
+.nav-children {
+  margin-left: 16px; /* Reduced from 28px */
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+/* Update nav item styles */
+.nav-item {
+  width: 100%;
+  padding: 8px 12px;
+  border: none;
+  border-radius: 6px;
+  background: none;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  gap: 8px; /* Reduced from 12px */
+  color: #64748b;
+  transition: all 0.2s ease;
+  font-size: 0.875rem;
+}
+
+/* Add specific alignment for parent items */
+.nav-group > .nav-item {
+  padding-left: 24px; /* Reduced from 36px */
+}
+
+/* Style nested nav items */
+.nav-children .nav-item {
+  padding: 6px 8px; /* Reduced horizontal padding */
+  font-size: 0.8125rem;
+}
+
+/* Update icon alignment */
+.nav-icon {
+  width: 20px; /* Reduced from 24px */
+  text-align: center;
+}
+
+/* Update mobile styles */
+@media (max-width: 768px) {
+  .nav-children {
+    margin-left: 0;
+    flex-direction: row;
+    justify-content: center;
+    gap: 16px;
+  }
+
+  .nav-section {
+    gap: 8px;
+  }
+}
+
+/* Main content area */
+.main-content {
+  flex: 1;
+  padding: 32px;
+  background-color: white;
+}
+
+/* Mobile styles */
+@media (max-width: 768px) {
+  .app {
+    flex-direction: column;
+  }
+
+  .sidebar {
+    width: 100%;
+    border-right: none;
+    border-top: none; /* Remove the border on mobile too */
+    padding: 8px 16px;
+    flex-direction: row;
+    justify-content: space-around;
+    order: 1;
+  }
+
+  .main-content {
+    order: 0; /* Move to top */
+  }
+
+  .nav-item {
+    flex-direction: column;
+    gap: 4px;
+    padding: 8px;
+  }
+
+  .nav-text {
+    font-size: 0.75rem;
+  }
+}
+
+/* Add drag and drop styles */
+.tasks-list {
+  position: relative;
+}
+
+.tasks-list.drag-over {
+  background-color: #f1f5f9;
+  border-radius: 4px;
+  transition: background-color 0.2s ease;
+}
+
+/* Notes styles */
+.notes-container {
+  padding: 20px 0;
+  height: 100%;
+}
+
+.notes-container h2 {
+  color: #0f172a;
+  font-size: 1rem;
+  font-weight: 600;
+  margin-bottom: 24px;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.notes-textarea {
+  width: 100%;
+  height: calc(100vh - 160px);
+  padding: 16px;
+  border: 1px solid #e2e8f0;
+  border-radius: 8px;
+  font-size: 0.875rem;
+  line-height: 1.6;
+  resize: none;
+  background-color: white;
+  color: #0f172a;
+}
+
+.notes-textarea:focus {
+  outline: none;
+  border-color: #0f172a;
+  box-shadow: 0 0 0 2px rgba(15, 23, 42, 0.1);
+}
+
+/* Style notes navigation items */
+.nav-children .nav-item[data-notes="true"] {
+  font-size: 0.8125rem;
+  color: #64748b;
+}
+
+/* Add hover effect for notes items */
+.nav-children .nav-item[data-notes="true"]:hover {
+  color: #0f172a;
+  background-color: #f1f5f9;
+}
+
+/* Active state for notes items */
+.nav-children .nav-item[data-notes="true"].active {
+  color: #0f172a;
+  background-color: #f8fafc;
+}
+
+/* New folder button styles */
+.new-folder-button {
+  width: 100%;
+  padding: 6px 8px;
+  border: none;
+  border-radius: 6px;
+  background: none;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  color: #64748b;
+  transition: all 0.2s ease;
+  font-size: 0.8125rem;
+  margin-top: 4px;
+  padding-left: 12px; /* Match the folder items padding */
+}
+
+.new-folder-button:hover {
+  color: #0f172a;
+  background-color: #f1f5f9;
+}
+
+.new-folder-button .nav-icon {
+  font-size: 11px;
+  width: 12px;
+  text-align: center;
+  display: inline-flex; /* Changed to inline-flex */
+  align-items: center;
+  justify-content: center;
+  margin-right: 4px; /* Add margin to match folder icon spacing */
+}
+
+.new-folder-button .nav-text {
+  line-height: 1.5; /* Match the folder text line height */
+  font-size: 0.8125rem; /* Match the folder text size */
+}
+
+/* Folder item container */
+.folder-item {
+  position: relative;
+  display: flex;
+  align-items: center;
+}
+
+/* Delete folder button */
+.delete-folder-button {
+  position: absolute;
+  right: 8px;
+  opacity: 0;
+  border: none;
+  background: none;
+  color: #64748b;
+  cursor: pointer;
+  font-size: 16px;
+  padding: 4px 8px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: all 0.2s ease;
+}
+
+/* Show delete button on folder hover */
+.folder-item:hover .delete-folder-button {
+  opacity: 0.5;
+}
+
+/* Delete button hover state */
+.delete-folder-button:hover {
+  opacity: 1 !important;
+  color: #ef4444; /* red-500 */
+}
+
+/* Notes layout */
+.notes-layout {
+  display: flex;
+  height: calc(100vh - 96px);
+  background-color: white;
+  border-radius: 8px;
+  overflow: hidden;
+}
+
+/* Notes sidebar */
+.notes-sidebar {
+  width: 250px;
+  border-right: 1px solid #e2e8f0;
+  background-color: #f8fafc;
+  overflow-y: auto;
+  display: flex;
+  flex-direction: column;
+}
+
+.notes-list {
+  flex: 1;
+  overflow-y: auto;
+  min-height: 0; /* Important for flex scrolling */
+}
+
+/* Note item in sidebar */
+.note-item {
+  padding: 12px 16px;
+  border-bottom: 1px solid #e2e8f0;
+  cursor: pointer;
+  transition: background-color 0.2s ease;
+  font-family: inherit;
+}
+
+.note-item:hover {
+  background-color: #f1f5f9;
+}
+
+.note-item.active {
+  background-color: white;
+}
+
+.note-title {
+  font-weight: 500;
+  color: #0f172a;
+  margin-bottom: 4px;
+  font-size: 0.875rem;
+  font-family: inherit;
+}
+
+.note-preview {
+  color: #64748b;
+  font-size: 0.8125rem;
+  margin-bottom: 4px;
+  /* Modern approach for line clamping */
+  display: -webkit-box;
+  -webkit-box-orient: vertical;
+  -webkit-line-clamp: 2;
+  line-clamp: 2; /* Standard property */
+  box-orient: vertical; /* Standard property */
+  /* Fallback for non-webkit browsers */
+  overflow: hidden;
+  text-overflow: ellipsis;
+  max-height: 2.6em;
+  line-height: 1.3;
+  font-family: inherit;
+}
+
+.note-date {
+  color: #94a3b8;
+  font-size: 0.75rem;
+}
+
+/* Note content area */
+.note-content {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  padding: 24px;
+  background-color: white;
+  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+}
+
+.note-title-input {
+  border: none;
+  font-size: 1.25rem;
+  font-weight: 500;
+  color: #0f172a;
+  margin-bottom: 16px;
+  background: none;
+  width: 100%;
+  font-family: inherit;
+}
+
+.note-title-input:focus {
+  outline: none;
+}
+
+.note-content-input {
+  flex: 1;
+  border: none;
+  resize: none;
+  font-size: 0.875rem;
+  line-height: 1.6;
+  color: #334155;
+  background: none;
+  font-family: inherit;
+}
+
+.note-content-input:focus {
+  outline: none;
+}
+
+/* Mobile adaptations */
+@media (max-width: 768px) {
+  .notes-layout {
+    flex-direction: column;
+  }
+
+  .notes-sidebar {
+    width: 100%;
+    height: 200px;
+    border-right: none;
+    border-bottom: 1px solid #e2e8f0;
+  }
+}
+
+/* Notes header */
+.notes-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 16px;
+  border-bottom: 1px solid #e2e8f0;
+}
+
+.notes-header h2 {
+  font-size: 1rem;
+  font-weight: 600;
+  color: #0f172a;
+  margin: 0;
+}
+
+.add-note-button {
+  border: none;
+  background: none;
+  color: #64748b;
+  cursor: pointer;
+  padding: 4px 8px;
+  border-radius: 4px;
+  transition: all 0.2s ease;
+}
+
+.add-note-button:hover {
+  color: #0f172a;
+  background-color: #f1f5f9;
+}
+
+/* Note item header */
+.note-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  margin-bottom: 4px;
+}
+
+/* Pin button */
+.pin-button {
+  border: none;
+  background: none;
+  padding: 2px 4px;
+  cursor: pointer;
+  opacity: 0;
+  transition: all 0.2s ease;
+  font-size: 14px;
+}
+
+.note-item:hover .pin-button {
+  opacity: 0.6;
+}
+
+.note-item.pinned .pin-button {
+  opacity: 1;
+}
+
+.pin-button:hover {
+  opacity: 1;
+  transform: scale(1.1);
+}
+
+/* Pinned note styling */
+.note-item.pinned {
+  background-color: #fff8e1;
+  border-left: 3px solid #ffd700;
+}
+
+.note-item.pinned:hover {
+  background-color: #fff3cd;
+}
+
+.note-item.pinned.active {
+  background-color: #fff8e1;
+}
+
+/* Update existing note-item to accommodate new header */
+.note-item {
+  padding: 12px 16px;
+  border-bottom: 1px solid #e2e8f0;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  font-family: inherit;
+}
+
+/* Nested notes styling */
+.add-nested-note {
+  opacity: 0;
+  border: none;
+  background: none;
+  padding: 2px 6px;
+  margin-left: 8px;
+  cursor: pointer;
+  font-size: 14px;
+  color: #64748b;
+  transition: all 0.2s ease;
+}
+
+.note-title:hover .add-nested-note {
+  opacity: 0.6;
+}
+
+.add-nested-note:hover {
+  opacity: 1 !important;
+  color: #0f172a;
+  transform: scale(1.1);
+}
+
+/* Update note-item to handle nesting */
+.note-item {
+  transition: all 0.2s ease;
+  border-left: 2px solid transparent;
+}
+
+.note-item.nested {
+  border-left-color: #e2e8f0;
+}
+
+/* Visual connection between parent and children */
+.note-item.has-children::before {
+  content: '';
+  position: absolute;
+  left: 0;
+  top: 100%;
+  bottom: 0;
+  width: 2px;
+  background-color: #e2e8f0;
+}
+
+/* Pomodoro section in sidebar */
+.pomodoro-section {
+  padding: 6px;
+  border-top: 1px solid #e2e8f0;
+  margin-top: auto; /* Push to bottom of sidebar */
+}
+
+.pomodoro-title {
+  font-size: 0.875rem;
+  font-weight: 600;
+  color: #0f172a;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-bottom: 12px;
+}
+
+.pomodoro-title span[role="img"] {
+  font-size: 1.1em;
+}
+
+/* Pomodoro styles */
+.pomodoro-container {
+  padding: 12px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 10px;
+}
+
+.timer {
+  font-size: 4rem;
+  font-weight: 500;
+  font-family: monospace;
+  color: #0f172a;
+}
+
+.timer-button {
+  padding: 12px 24px;
+  font-size: 1rem;
+  font-weight: 500;
+  color: white;
+  background-color: #1e3a8a;
+  border: none;
+  border-radius: 8px;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.timer-button:hover {
+  background-color: #1e40af;
+}
+
+/* Update Sidebar Pomodoro styles */
+.sidebar-pomodoro {
+  padding: 0;
+}
+
+.sidebar-pomodoro .nav-item {
+  padding: 6px 24px; /* Match parent nav-item padding */
+  margin-bottom: 4px;
+}
+
+.sidebar-pomodoro .nav-icon {
+  width: 20px; /* Match other nav icons */
+  text-align: center;
+}
+
+.sidebar-pomodoro .nav-text {
+  font-size: 0.8125rem;
+  color: #64748b;
+}
+
+/* Pomodoro button styles */
+.pomodoro-button {
+  margin-left: 14px;
+  margin-right: 14px;
+  padding: 6px 8px;
+  font-size: 0.75rem;
+  color: #64748b;
+  background-color: transparent;
+  border: 1px solid #64748b;
+  border-radius: 4px;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  width: auto;
+}
+
+.pomodoro-button:hover {
+  color: #0f172a;
+  border-color: #0f172a;
+  background-color: transparent;
+}
+
+/* Update Digital clock styles */
+.digital-clock {
+  font-family: inherit;
+  font-size: 0.75rem;
+  font-weight: normal;
+  color: #64748b;
+  border: 1px solid #64748b;
+  border-radius: 4px;
+  padding: 6px 8px;
+  margin: 4px 14px;
+  text-align: center;
+  background-color: transparent;
+  letter-spacing: normal;
+}
+
+/* Update Pomodoro button styles */
+.pomodoro-button {
+  margin: 4px 14px;
+  padding: 6px 8px;
+  font-size: 0.75rem;
+  font-family: inherit;
+  font-weight: normal;
+  color: #64748b;
+  background-color: transparent;
+  border: 1px solid #64748b;
+  border-radius: 4px;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  width: auto;
+}
+
+.pomodoro-button:hover,
+.digital-clock:hover {
+  color: #0f172a;
+  border-color: #0f172a;
+}
+
+/* Task text input styles */
+.task-text-input {
+  flex: 1;
+  border: none;
+  background: none;
+  font-size: 0.875rem;
+  font-family: inherit;
+  color: inherit;
+  padding: 4px 0;
+  min-width: 0;
+}
+
+.task-text-input:focus {
+  outline: none;
+}
+
+/* Update task text styles */
+.task-text {
+  flex: 1;
+  cursor: text;
+  padding: 4px 6px;
+  min-width: 0;
+  font-size: 0.875rem;
+  color: inherit;
+  outline: none;
+  white-space: pre-wrap;
+  word-break: break-word;
+  border-radius: 4px;
+  transition: background-color 0.2s ease;
+  min-height: 28px;
+  height: auto;
+  display: block;
+  line-height: 1.5;
+  -webkit-user-modify: read-write;
+  -webkit-spell-check: false;
+  -ms-spell-check: false;
+}
+
+/* Remove the empty state styles since we don't need them anymore */
+.task-text:empty::before {
+  content: none;
+}
+
+.task-item.completed .task-text {
+  color: #94a3b8;
+  text-decoration: line-through;
+}
+
+/* Remove the drag handle styles */
+.drag-handle,
+.task-item.dragging {
+  display: none;
+}
+
+/* Update task content to restore editing */
+.task-content {
+  display: flex;
+  align-items: flex-start;
+  gap: 12px;
+  min-width: 0;
+  flex: 1;
+  min-height: 28px;
+  padding: 2px 0;
+}
+
+/* Add drag handle styles */
+.drag-handle {
+  opacity: 0;
+  cursor: grab;
+  color: #94a3b8;
+  padding: 4px 8px;
+  user-select: none;
+  transition: all 0.2s ease;
+  margin-left: auto;
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+  height: 20px;
+  justify-content: center;
+  align-self: center;
+  margin-top: 4px;
+}
+
+/* Create three horizontal lines */
+.drag-handle::before,
+.drag-handle::after,
+.drag-handle span {
+  content: '';
+  display: block;
+  width: 14px;
+  height: 1px;
+  background-color: currentColor;
+  transition: all 0.2s ease;
+}
+
+/* Add the middle line using a span */
+.drag-handle span {
+  content: none;
+}
+
+/* Show drag handle on task hover */
+.task-item:hover .drag-handle {
+  opacity: 0.5;
+}
+
+/* Drag handle hover state */
+.drag-handle:hover {
+  opacity: 1 !important;
+  color: #64748b;
+}
+
+/* Style for when dragging */
+.task-item.dragging {
+  opacity: 0.5;
+  background-color: #f8fafc;
+}
+
+/* Add drag-over indicator */
+.task-item.drag-over::before {
+  content: '';
+  position: absolute;
+  top: -2px;
+  left: 0;
+  right: 0;
+  height: 1px;
+  background-color: #1e40af;
+  pointer-events: none;
+}
+
+.tasks-list.drag-over {
+  background-color: #f1f5f9;
+  border-radius: 4px;
+}
