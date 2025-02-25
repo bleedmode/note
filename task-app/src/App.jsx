@@ -470,12 +470,9 @@ function App() {
 
   return (
     <div className="app">
-      <nav className="sidebar">
+      <nav className="app-sidebar">
         <div className="nav-section">
-          <NavItem 
-            text="Tasks"
-            isActive={activeTab === 'todo'}
-          >
+          <NavItem text="Tasks" isActive={activeTab === 'todo'}>
             <NavItem 
               icon="💼"
               text="Work"
@@ -498,11 +495,7 @@ function App() {
         </div>
         
         <div className="nav-section">
-          <NavItem 
-            text="Notes"
-            isActive={activeTab.includes('notes')}
-            onClick={() => setActiveTab('notes-all')}
-          >
+          <NavItem text="Notes" isActive={activeTab.includes('notes')}>
             {noteFolders.map((folder, index) => (
               <div key={index} className="folder-item">
                 <NavItem 
@@ -535,12 +528,8 @@ function App() {
           </NavItem>
         </div>
 
-        {/* Update the Pomodoro section in the sidebar */}
         <div className="nav-section">
-          <NavItem 
-            text="Pomodoro"
-            isActive={activeTab === 'pomodoro'}
-          >
+          <NavItem text="Pomodoro" isActive={activeTab === 'pomodoro'}>
             <div className="digital-clock">
               {formatTime(timeLeft)}
             </div>
@@ -549,12 +538,22 @@ function App() {
               onClick={() => setIsTimerRunning(!isTimerRunning)}
             >
               {isTimerRunning ? 'Pause' : 'Start'}
-        </button>
+            </button>
           </NavItem>
+        </div>
+
+        {/* Profile moved to bottom */}
+        <div className="app-sidebar-header">
+          <div className="user-avatar">
+            R
+          </div>
+          <div className="user-info">
+            <h3 className="user-name">Rosenlykke</h3>
+          </div>
         </div>
       </nav>
 
-      <main className="main-content">
+      <main className={`main-content ${activeTab.includes('notes') ? 'notes' : ''}`}>
         {activeTab.includes('notes') ? (
           <Notes 
             activeFolder={noteFolders.find(folder => 

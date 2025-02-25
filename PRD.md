@@ -277,6 +277,163 @@ Key implementation features:
 - Full-height text editor
 - Automatic saving
 - Clean, distraction-free interface
+- Smart title extraction from first non-empty content
+- Separate preview content from title
+- Auto-delete empty notes
+
+#### Notes Layout
+- Two-column layout with sidebar and content area
+- No padding in main container for full-width experience
+- Fixed 56px header height in both columns
+- Full viewport height utilization (100vh)
+- Transparent backgrounds for clean look
+
+Implementation:
+```css
+.notes-layout {
+  display: flex;
+  width: 100%;
+  height: 100vh;
+}
+
+.note-content {
+  flex: 1;
+  height: 100vh;
+  display: flex;
+  flex-direction: column;
+  background-color: transparent;
+}
+```
+
+#### Notes Sidebar
+- Width: 250px
+- Border-right: 1px solid #e2e8f0
+- Transparent background
+- Scrollable note list
+- Fixed header with folder name and delete button
+- Trash icon for deleting selected note
+
+Implementation:
+```css
+.notes-sidebar {
+  width: 250px;
+  height: 100vh;
+  border-right: 1px solid #e2e8f0;
+  display: flex;
+  flex-direction: column;
+  background-color: transparent;
+}
+
+.notes-list {
+  flex: 1;
+  overflow-y: auto;
+  background-color: transparent;
+}
+
+.delete-note-button {
+  border: none;
+  background: none;
+  color: #64748b;
+  cursor: pointer;
+  padding: 4px 8px;
+  border-radius: 4px;
+  transition: all 0.2s ease;
+  opacity: 0.6;
+}
+
+.delete-note-button:hover {
+  color: #ef4444;
+  opacity: 1;
+}
+```
+
+#### Notes Content Area
+- Flexible width (fills remaining space)
+- Fixed header height (56px)
+- Custom plus button for new notes
+- Single text area for content
+- First non-empty content becomes title
+- Smart title/preview separation
+- Auto-save functionality
+- Clean, minimal styling
+- Search functionality in header
+- Search across all content
+
+Implementation:
+```css
+.note-content-header {
+  height: 56px;
+  padding: 0 32px;
+  border-bottom: 1px solid #e2e8f0;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  background-color: transparent;
+}
+
+/* Search bar styling */
+.notes-search {
+  border: 1px solid #e2e8f0;
+  padding: 8px 12px;
+  border-radius: 4px;
+  font-size: 0.875rem;
+  color: #64748b;
+  width: 200px;
+  outline: none;
+}
+
+.notes-search:focus {
+  color: #0f172a;
+  border: 1px solid #1e3a8a;
+}
+```
+
+#### Note Interactions
+- Click plus button to create new note
+- First line automatically becomes title
+- Auto-delete empty notes when clicking away
+- Real-time saving
+- Trash icon to delete selected note
+- Smooth transitions between states
+- Real-time search across titles and content
+
+Implementation:
+```jsx
+// Search functionality
+const [searchTerm, setSearchTerm] = useState('');
+
+const filteredNotes = useMemo(() => {
+  if (!searchTerm.trim()) return sortedNotes;
+  
+  const searchLower = searchTerm.toLowerCase();
+  
+  const filterNote = (note) => {
+    const firstLine = note.content.split('\n')[0] || '';
+    const matchesTitle = firstLine.toLowerCase().includes(searchLower);
+    const matchesContent = note.content.toLowerCase().includes(searchLower);
+    const matchingChildren = note.children?.some(filterNote) || false;
+    
+    return matchesTitle || matchesContent || matchingChildren;
+  };
+  
+  return sortedNotes.filter(filterNote);
+}, [sortedNotes, searchTerm]);
+
+// Auto-delete functionality
+const handleNoteBlur = (e) => {
+  const noteContent = e.currentTarget.closest('.note-content');
+  const newTarget = e.relatedTarget;
+  
+  if (!noteContent?.contains(newTarget) && isNoteEmpty(activeNote)) {
+    deleteNote(activeNote.id);
+  }
+};
+
+// Helper function to check if note is empty
+const isNoteEmpty = (note) => {
+  return !note.content.trim();
+};
+```
 
 ### Mobile Adaptations
 - Sidebar moves to bottom

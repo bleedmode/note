@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useCallback } from 'react'
+import React, { useState, useEffect, useCallback, useMemo } from 'react'
 
 const Notes = ({ activeFolder = 'All Notes', onAddWorkTask }) => {
   // Initialize with some default notes
@@ -75,6 +75,14 @@ const Notes = ({ activeFolder = 'All Notes', onAddWorkTask }) => {
     
     setAllNotes(updatedNotes)
     setActiveNoteId(newNote.id)
+
+    // Use requestAnimationFrame for faster focus
+    requestAnimationFrame(() => {
+      const textarea = document.querySelector('.note-content-input')
+      if (textarea) {
+        textarea.focus()
+      }
+    })
   }
 
   // Handle note selection
@@ -161,161 +169,203 @@ const Notes = ({ activeFolder = 'All Notes', onAddWorkTask }) => {
     setAllNotes(updatedNotes)
   }
 
-  // Add function to organize notes in a hierarchical structure
-  const organizeNotes = (notes) => {
-    const noteMap = new Map()
-    const rootNotes = []
-
-    // First pass: create a map of all notes
-    notes.forEach(note => {
-      noteMap.set(note.id, { ...note, children: [] })
-    })
-
-    // Second pass: organize into hierarchy
-    noteMap.forEach(note => {
-      if (note.parentId && noteMap.has(note.parentId)) {
-        noteMap.get(note.parentId).children.push(note)
-      } else {
-        rootNotes.push(note)
-      }
-    })
-
-    return rootNotes
-  }
-
-  // Add function to create a nested note
-  const handleAddNestedNote = (parentId) => {
-    const newNote = {
-      id: Date.now(),
-      title: 'Untitled Note',
-      content: '',
-      createdAt: Date.now(),
-      isPinned: false,
-      parentId
+  // Update the sorting logic to remove nesting
+  const sortedNotes = [...currentNotes].sort((a, b) => {
+    if (a.isPinned === b.isPinned) {
+      return b.createdAt - a.createdAt
     }
+    return a.isPinned ? -1 : 1
+  })
 
+  // Add search state near the top with other state declarations
+  const [searchTerm, setSearchTerm] = useState('');
+
+  // Add a function to filter notes based on search term
+  const filteredNotes = useMemo(() => {
+    if (!searchTerm.trim()) return sortedNotes;
+    
+    const searchLower = searchTerm.toLowerCase();
+    
+    const filterNote = (note) => {
+      const firstLine = note.content.split('\n')[0] || '';
+      const matchesTitle = firstLine.toLowerCase().includes(searchLower);
+      const matchesContent = note.content.toLowerCase().includes(searchLower);
+      
+      // Also search through children if any
+      const matchingChildren = note.children?.some(filterNote) || false;
+      
+      return matchesTitle || matchesContent || matchingChildren;
+    };
+    
+    return sortedNotes.filter(filterNote);
+  }, [sortedNotes, searchTerm]);
+
+  // Add helper function to get the first non-empty content
+  const getFirstContent = (content) => {
+    // Split by newlines and find first non-empty line
+    const lines = content.split('\n');
+    const firstNonEmptyLine = lines.find(line => line.trim()) || '';
+    
+    // Get first sentence, word, or character
+    const firstSentence = firstNonEmptyLine.split('.')[0].trim();
+    if (firstSentence) return firstSentence;
+    
+    const firstWord = firstNonEmptyLine.split(' ')[0].trim();
+    if (firstWord) return firstWord;
+    
+    return firstNonEmptyLine.trim() || 'Untitled Note';
+  };
+
+  // Add helper function to get note preview content
+  const getNotePreview = (content) => {
+    const lines = content.split('\n');
+    const firstNonEmptyLine = lines.find(line => line.trim()) || '';
+    
+    // Get first sentence as title
+    const firstSentence = firstNonEmptyLine.split('.')[0].trim();
+    
+    // Get remaining content after the first sentence
+    const remainingContent = content
+      .slice(firstSentence.length)
+      .trim()
+      .replace(/^\./,'') // Remove leading period if exists
+      .trim();
+    
+    return remainingContent || 'No additional text';
+  };
+
+  // Update NoteItem component
+  const NoteItem = ({ note }) => (
+    <div 
+      key={note.id}
+      className={`note-item ${note.id === activeNote?.id ? 'active' : ''} ${note.isPinned ? 'pinned' : ''}`}
+      onClick={() => setActiveNoteId(note.id)}
+    >
+      <div className="note-header">
+        <div className="note-title">
+          {getFirstContent(note.content)}
+        </div>
+        <button 
+          className="pin-button"
+          onClick={(e) => {
+            e.stopPropagation();
+            togglePin(note.id);
+          }}
+          title={note.isPinned ? "Unpin note" : "Pin note"}
+        >
+          {note.isPinned ? "📌" : "📍"}
+        </button>
+      </div>
+      <div className="note-preview">{getNotePreview(note.content)}</div>
+      <div className="note-date">
+        {new Date(note.createdAt).toLocaleDateString()}
+      </div>
+    </div>
+  )
+
+  // Update the empty check function to only look at content
+  const isNoteEmpty = (note) => {
+    return !note.content.trim();
+  };
+
+  // Add delete note function
+  const deleteNote = (noteId) => {
     const updatedNotes = activeFolder === 'All Notes'
       ? {
           ...allNotes,
-          'All Notes': [...(allNotes['All Notes'] || []), newNote]
+          'All Notes': allNotes['All Notes'].filter(note => note.id !== noteId)
         }
       : {
           ...allNotes,
           folders: {
             ...allNotes.folders,
-            [activeFolder]: [...(allNotes.folders[activeFolder] || []), newNote]
+            [activeFolder]: allNotes.folders[activeFolder].filter(note => note.id !== noteId)
           }
         }
-    
     setAllNotes(updatedNotes)
-    setActiveNoteId(newNote.id)
+    setActiveNoteId(null)
   }
 
-  // Update the sorting logic to handle nested notes
-  const sortedNotes = organizeNotes([...currentNotes].sort((a, b) => {
-    if (a.isPinned === b.isPinned) {
-      return b.createdAt - a.createdAt
+  // Add this function to handle the entire note blur
+  const handleNoteBlur = (e) => {
+    // Check if the new target is still within the note-content
+    const noteContent = e.currentTarget.closest('.note-content');
+    const newTarget = e.relatedTarget;
+    
+    // Only delete if clicking outside the note content area AND note is empty
+    if (!noteContent?.contains(newTarget) && isNoteEmpty(activeNote)) {
+      deleteNote(activeNote.id);
     }
-    return a.isPinned ? -1 : 1
-  }))
-
-  // Recursive component for rendering notes
-  const NoteItem = ({ note, level = 0 }) => (
-    <>
-      <div 
-        key={note.id}
-        className={`note-item ${note.id === activeNote?.id ? 'active' : ''} ${note.isPinned ? 'pinned' : ''}`}
-        onClick={() => setActiveNoteId(note.id)}
-        style={{ paddingLeft: `${level * 20 + 16}px` }}
-      >
-        <div className="note-header">
-          <div className="note-title">
-            {note.title}
-            <button 
-              className="add-nested-note"
-              onClick={(e) => {
-                e.stopPropagation()
-                handleAddNestedNote(note.id)
-              }}
-              title="Add nested note"
-            >
-              +
-            </button>
-          </div>
-          <button 
-            className="pin-button"
-            onClick={(e) => {
-              e.stopPropagation()
-              togglePin(note.id)
-            }}
-            title={note.isPinned ? "Unpin note" : "Pin note"}
-          >
-            {note.isPinned ? "📌" : "📍"}
-          </button>
-        </div>
-        <div className="note-preview">{note.content.slice(0, 50)}...</div>
-        <div className="note-date">
-          {new Date(note.createdAt).toLocaleDateString()}
-        </div>
-      </div>
-      {note.children?.map(child => (
-        <NoteItem key={child.id} note={child} level={level + 1} />
-      ))}
-    </>
-  )
+  };
 
   return (
     <div className="notes-layout">
       <div className="notes-sidebar">
         <div className="notes-header">
           <h2>{activeFolder}</h2>
-          <button className="add-note-button" onClick={handleAddNote}>
-            <span className="nav-icon">➕</span>
+          <button 
+            className="delete-note-button" 
+            onClick={() => activeNote && deleteNote(activeNote.id)}
+            title="Delete note"
+          >
+            🗑️
           </button>
         </div>
         <div className="notes-list">
-          {sortedNotes.map(note => (
+          {filteredNotes.map(note => (
             <NoteItem key={note.id} note={note} />
           ))}
         </div>
       </div>
       
-      <div className="note-content">
+      <div className="note-content" onBlur={handleNoteBlur}>
+        <div className="note-content-header">
+          <button className="add-note-button" onClick={handleAddNote}>
+            <span className="nav-icon"></span>
+          </button>
+          <input
+            type="text"
+            className="notes-search"
+            placeholder="Search notes..."
+            value={searchTerm}
+            onChange={(e) => setSearchTerm(e.target.value)}
+          />
+        </div>
         {activeNote && (
-          <>
-            <input
-              type="text"
-              className="note-title-input"
-              value={activeNote.title}
-              onChange={(e) => {
-                const updatedNotes = activeFolder === 'All Notes'
-                  ? {
-                      ...allNotes,
-                      'All Notes': allNotes['All Notes'].map(note => 
-                        note.id === activeNote.id ? { ...note, title: e.target.value } : note
+          <textarea
+            className="note-content-input"
+            value={activeNote.content}
+            onChange={(e) => {
+              const content = e.target.value;
+              const title = content.split('\n')[0] || 'Untitled Note';
+              
+              const updatedNotes = activeFolder === 'All Notes'
+                ? {
+                    ...allNotes,
+                    'All Notes': allNotes['All Notes'].map(note => 
+                      note.id === activeNote.id 
+                        ? { ...note, content, title } 
+                        : note
+                    )
+                  }
+                : {
+                    ...allNotes,
+                    folders: {
+                      ...allNotes.folders,
+                      [activeFolder]: allNotes.folders[activeFolder].map(note =>
+                        note.id === activeNote.id 
+                          ? { ...note, content, title }
+                          : note
                       )
                     }
-                  : {
-                      ...allNotes,
-                      folders: {
-                        ...allNotes.folders,
-                        [activeFolder]: allNotes.folders[activeFolder].map(note =>
-                          note.id === activeNote.id ? { ...note, title: e.target.value } : note
-                        )
-                      }
-                    }
-                setAllNotes(updatedNotes)
-              }}
-            />
-            <textarea
-              className="note-content-input"
-              value={activeNote.content}
-              onChange={(e) => handleNoteChange(e.target.value)}
-              onKeyDown={handleNoteKeyDown}
-              placeholder="Start typing your note here... (Type 'TW:' to create a work task)"
-              autoFocus
-            />
-          </>
+                  }
+              setAllNotes(updatedNotes);
+            }}
+            onKeyDown={handleNoteKeyDown}
+            placeholder="Start typing your note here..."
+            data-empty={!activeNote.content}
+            autoFocus
+          />
         )}
       </div>
     </div>
