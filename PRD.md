@@ -1,7 +1,7 @@
 # Task Management App PRD
 
 ## Overview
-A minimalist task management application with a focus on clean design and efficient task organization, featuring both task management and note-taking capabilities.
+A minimalist task management application with a focus on clean design and efficient task organization, featuring both task management and note-taking capabilities. The application uses Supabase for backend services including authentication, database storage, and real-time updates.
 
 ## Design Principles
 - Minimalist and clean interface
@@ -280,6 +280,9 @@ Key implementation features:
 - Smart title extraction from first non-empty content
 - Separate preview content from title
 - Auto-delete empty notes
+- Sort by last edited time within pinned/unpinned groups
+- Pin important notes to top of list
+- Auto-focus on new note creation
 
 #### Notes Layout
 - Two-column layout with sidebar and content area
@@ -390,10 +393,14 @@ Implementation:
 
 #### Note Interactions
 - Click plus button to create new note
+- Cursor automatically focuses at start of new note
 - First line automatically becomes title
+- Second line and beyond shown as preview in sidebar
 - Auto-delete empty notes when clicking away
 - Real-time saving
 - Trash icon to delete selected note
+- After deletion, most recent note is selected
+- Most recently edited/created note is selected by default
 - Smooth transitions between states
 - Real-time search across titles and content
 
@@ -434,6 +441,160 @@ const isNoteEmpty = (note) => {
   return !note.content.trim();
 };
 ```
+
+#### Note Content Handling
+- Title extraction:
+  ```jsx
+  const getFirstContent = (content) => {
+    const div = document.createElement('div')
+    div.innerHTML = content
+    
+    // Convert HTML paragraphs and breaks to newlines
+    const html = div.innerHTML
+      .replace(/<p>/g, '')
+      .replace(/<\/p>/g, '\n')
+      .replace(/<br>/g, '\n')
+      .replace(/<br\/>/g, '\n')
+    
+    div.innerHTML = html
+    const textContent = div.textContent || ''
+    const lines = textContent.split('\n').filter(line => line.trim())
+    
+    return lines[0]?.trim() || 'Untitled Note'
+  }
+  ```
+
+- Preview content:
+  ```jsx
+  const getNotePreview = (content) => {
+    const div = document.createElement('div')
+    div.innerHTML = content
+    
+    // Convert HTML paragraphs and breaks to newlines
+    const html = div.innerHTML
+      .replace(/<p>/g, '')
+      .replace(/<\/p>/g, '\n')
+      .replace(/<br>/g, '\n')
+      .replace(/<br\/>/g, '\n')
+    
+    div.innerHTML = html
+    const textContent = div.textContent || ''
+    const lines = textContent.split('\n').filter(line => line.trim())
+    
+    // Return the second line if it exists
+    if (lines.length > 1) {
+      return lines[1].trim()
+    }
+    
+    return 'No additional text'
+  }
+  ```
+
+#### Rich Text Editor Implementation
+- TipTap editor configuration:
+  ```jsx
+  const editor = useEditor({
+    extensions: [
+      StarterKit.configure({
+        heading: {
+          levels: [1, 2, 3],
+        },
+      }),
+      BulletList,
+      OrderedList,
+      TaskList,
+      TaskItem,
+      Underline,
+    ],
+    content,
+    onUpdate: ({ editor }) => {
+      onUpdate(editor.getHTML())
+    },
+    autofocus: 'end', // Focus at end of content
+  })
+
+  // Auto-focus for new notes
+  useEffect(() => {
+    if (editor && !content) {
+      editor.commands.focus()
+    }
+  }, [editor, content])
+  ```
+
+- Editor scrolling:
+  - Fixed height calculation: `calc(100vh - 112px)`
+  - Scrollable content area with `overflow-y: auto`
+  - Nested container structure with proper overflow handling
+  - Container hierarchy maintains proper scrolling context
+  - Smooth scrolling behavior
+
+- Formatting toolbar:
+  - Collapsible design
+  - Toggle with "Aa" button
+  - Text size options:
+    - Large (H2)
+    - Medium (H3)
+    - Normal (P)
+  - Text styling:
+    - Bold (B)
+    - Italic (I)
+    - Underline (U)
+  - List options:
+    - Bullet list
+    - Numbered list
+
+- List styling:
+  - First level bullets: Filled disc (●)
+  - Second level bullets: Empty circle (○)
+  - Third level bullets: Square (■)
+  - First level numbers: Decimal (1, 2, 3)
+  - Second level numbers: Lowercase letters (a, b, c)
+  - Third level numbers: Lowercase Roman (i, ii, iii)
+  - List indentation: 24px
+  - Item spacing: 0.2em vertical margin
+  - List block spacing: 0.5em top and bottom
+
+- Toolbar styling:
+  ```css
+  .editor-toolbar {
+    padding: 8px 32px;
+    border-bottom: 1px solid #e2e8f0;
+    display: flex;
+    gap: 8px;
+    align-items: center;
+  }
+
+  .format-button-bold {
+    font-weight: 700 !important;
+  }
+
+  .format-button-italic {
+    font-style: italic !important;
+  }
+
+  .format-button-underline {
+    text-decoration: underline !important;
+  }
+  ```
+
+#### Note Display
+- Title:
+  - Extracted from first line
+  - Updates in real-time
+  - Fallback to "Untitled Note"
+- Preview:
+  - Shows second line of content
+  - "No additional text" if no second line
+  - Updates in real-time
+  - Handles HTML formatting
+- Date:
+  - Shows creation date
+  - Localized format
+- Organization:
+  - Pinned notes grouped under "Pinned" section header
+  - Regular notes grouped under "Notes" section header
+  - Clear visual separation between pinned and unpinned notes
+  - Section headers with subtle background and uppercase text
 
 ### Mobile Adaptations
 - Sidebar moves to bottom
@@ -500,105 +661,132 @@ const isNoteEmpty = (note) => {
 13. Multi-line task support
 14. Seamless text editing experience
 15. Auto-deletion for empty tasks
+16. User authentication (email and Google)
+17. User profiles and settings
+18. Cross-device synchronization
+19. Real-time updates
+20. Offline support with sync on reconnection
 
 ## Technical Notes
-- Local storage for data persistence
+- Supabase for backend services
+  - Authentication (email and Google OAuth)
+  - PostgreSQL database for data storage
+  - Real-time subscriptions for live updates
+  - Row-level security for data protection
 - React for UI components
 - CSS for styling (no UI framework)
 - Mobile-first responsive design
-- Separate storage for tasks and notes
-- ContentEditable implementation for text editing
-- Custom checkbox alignment for multi-line text
-- Timer state management
-- Smooth height transitions for dynamic content
+- Offline-first architecture with sync on reconnection
+- Optimistic UI updates for better user experience
 
-### Task Interaction Implementation
-- Combined text editing and drag functionality:
-  ```jsx
-  <div
-    className="task-item"
-    draggable={false} // Default not draggable for text editing
-    onDragOver={...}
-    onDrop={...}
-  >
-    <div className="task-content">
-      {/* Editable text area */}
-      <div 
-        className="task-text"
-        contentEditable={true}
-        suppressContentEditableWarning={true}
-        spellCheck="false"
-        onBlur={(e) => handleTextUpdate(e)}
-        onKeyDown={(e) => handleEnterKey(e)}
-      />
-      
-      {/* Drag handle with dynamic draggable behavior */}
-      <div 
-        className="drag-handle"
-        onMouseDown={(e) => {
-          const taskElement = e.currentTarget.closest('.task-item');
-          taskElement.draggable = true;
-          
-          taskElement.ondragstart = (dragEvent) => {
-            handleDragStart(dragEvent, taskId, type);
-          };
-          
-          taskElement.ondragend = () => {
-            taskElement.draggable = false;
-            taskElement.ondragstart = null;
-            taskElement.ondragend = null;
-          };
-        }}
-      >
-        ⋮
-      </div>
-    </div>
-  </div>
-  ```
+## Database Schema
 
-- Key implementation details:
-  1. Task container is not draggable by default
-  2. Text area uses contentEditable for direct editing
-  3. Drag handle enables dragging only when used
-  4. Drag handlers are cleaned up after drag ends
-  5. Event propagation is managed to prevent conflicts
+### Users Table
+- id (UUID, primary key)
+- email (string, unique)
+- display_name (string)
+- created_at (timestamp)
+- updated_at (timestamp)
 
-- CSS considerations:
-  ```css
-  .task-text {
-    flex: 1;
-    cursor: text;
-    min-width: 0;
-    white-space: pre-wrap;
-    word-break: break-word;
-    -webkit-user-modify: read-write;
-  }
+### Folders Table
+- id (UUID, primary key)
+- user_id (UUID, foreign key to users)
+- name (string)
+- created_at (timestamp)
+- updated_at (timestamp)
 
-  .drag-handle {
-    opacity: 0;
-    cursor: grab;
-    user-select: none;
-    margin-left: auto;
-  }
+### Notes Table
+- id (UUID, primary key)
+- user_id (UUID, foreign key to users)
+- folder_id (UUID, foreign key to folders)
+- title (string)
+- content (text)
+- is_pinned (boolean)
+- created_at (timestamp)
+- updated_at (timestamp)
 
-  .task-item:hover .drag-handle {
-    opacity: 0.5;
-  }
+### Tasks Table
+- id (UUID, primary key)
+- user_id (UUID, foreign key to users)
+- text (string)
+- completed (boolean)
+- completed_at (timestamp)
+- type (string: 'work' or 'private')
+- section (string: 'todo' or 'waiting')
+- note_id (UUID, foreign key to notes)
+- note_task_id (string)
+- order_index (integer)
+- created_at (timestamp)
+- updated_at (timestamp)
 
-  .drag-handle:hover {
-    opacity: 1 !important;
-  }
-  ```
+## Authentication Flow
 
-- State management:
-  1. Text updates are handled through onBlur events
-  2. Drag state is managed through HTML5 drag and drop API
-  3. Task order is maintained in parent component state
-  4. Completed tasks are rendered separately but follow same pattern
+### Email Authentication
+1. User enters email and password
+2. System validates input
+3. On sign up:
+   - Create new user in Supabase Auth
+   - Create user profile in profiles table
+4. On sign in:
+   - Validate credentials with Supabase Auth
+   - Retrieve user session
+5. Redirect to main application
+
+### Google Authentication
+1. User clicks "Sign in with Google"
+2. Redirect to Google OAuth consent screen
+3. User authorizes application
+4. Google redirects back with authorization code
+5. Supabase exchanges code for tokens
+6. Create or retrieve user profile
+7. Redirect to main application
+
+## Data Synchronization
+
+### Real-time Updates
+- Subscribe to relevant tables using Supabase real-time
+- Update UI when remote changes occur
+- Implement optimistic UI updates for local changes
+- Handle conflicts with last-write-wins strategy
+
+### Offline Support
+- Cache data in localStorage as backup
+- Queue operations when offline
+- Sync queue when connection is restored
+- Provide visual indicators for sync status
+
+## Implementation Phases
+
+### Phase 1: Authentication
+- Set up Supabase project
+- Implement email authentication
+- Create user profiles
+- Add sign in/sign up/sign out functionality
+
+### Phase 2: Data Migration
+- Create database schema
+- Migrate notes data to Supabase
+- Migrate tasks data to Supabase
+- Implement basic CRUD operations
+
+### Phase 3: Real-time Sync
+- Add real-time subscriptions
+- Implement optimistic UI updates
+- Add offline support
+- Handle conflict resolution
+
+### Phase 4: Advanced Features
+- Add Google authentication
+- Implement user settings
+- Add sharing capabilities
+- Enhance offline experience
 
 This implementation ensures:
 - Seamless text editing experience
 - Reliable drag and drop functionality
 - No interference between the two features
 - Clean and maintainable code structure
-- Consistent behavior across browsers 
+- Consistent behavior across browsers
+- Secure user authentication
+- Reliable data synchronization
+- Cross-device accessibility 

@@ -49,7 +49,6 @@ task-app/
 │   ├── components/
 │   │   ├── Notes.jsx
 │   │   └── Pomodoro.jsx
-│   │   
 │   ├── App.jsx
 │   └── App.css
 ├── public/
@@ -60,4 +59,4 @@ task-app/
 
 ## Documentation
 
-See [PRD.md](PRD.md) for detailed product requirements and implementation details. 
+See [PRD.md](PRD.md) for detailed product requirements and implementation details.

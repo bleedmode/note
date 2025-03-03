@@ -22,6 +22,8 @@
   background-color: transparent;
   border-radius: 0;
   box-shadow: none;
+  height: 100%;
+  overflow-y: auto;
 }
 
 /* Add these new styles at the end of the file */
@@ -140,6 +142,8 @@
   gap: 48px;
   width: 100%;
   position: relative;
+  min-height: 100%;
+  padding: 32px;
 }
 
 /* Remove the vertical separator */
@@ -495,6 +499,7 @@ body {
   display: flex;
   flex-direction: column;
   background-color: transparent;
+  padding: 0;
 }
 
 .nav-section {
@@ -569,6 +574,10 @@ body {
   margin-left: 200px;
   height: 100vh;
   overflow: hidden; /* Prevent scrolling on main container */
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+  min-height: 0; /* Add this to allow flex child to scroll */
 }
 
 /* Notes-specific main content without padding */
@@ -745,12 +754,6 @@ body {
   appearance: none;
   outline: none !important;
   box-shadow: none !important;
-  border-radius: 0;
-  transition: color 0.2s ease;
-  position: relative;
-  transform: translateZ(0); /* Create new stacking context */
-  -webkit-spell-check: false;
-  -ms-spell-check: false;
 }
 
 /* Hover states */
@@ -1171,8 +1174,8 @@ body {
 /* Notes layout */
 .notes-layout {
   display: flex;
-  width: 100%;
   height: 100vh;
+  overflow: hidden;
 }
 
 /* Notes sidebar */
@@ -1182,37 +1185,116 @@ body {
   border-right: 1px solid #e2e8f0;
   display: flex;
   flex-direction: column;
-  background-color: transparent;
 }
 
 /* Notes list container */
 .notes-list {
   flex: 1;
   overflow-y: auto;
+  padding: 0;
+  margin: 0;
   background-color: transparent;
 }
 
 /* Note content area */
 .note-content {
-  flex: 1;
-  height: 100vh;
   display: flex;
   flex-direction: column;
-  background-color: transparent;
+  flex: 1;
+  overflow: hidden;
 }
 
-/* Note content input */
-.note-content-input {
+/* Note editor container */
+.note-editor-container {
+  display: flex;
+  flex-direction: column;
   flex: 1;
-  margin-top: 24px; /* Add margin to create space */
-  border: none;
-  resize: none;
-  font-family: inherit;
-  background: none;
+  overflow: hidden;
+  height: 100%; /* Take full height of parent */
+}
+
+/* TipTap editor container */
+.tiptap-editor {
+  display: flex;
+  flex-direction: column;
+  flex: 1;
+  overflow: hidden;
+  height: 100%; /* Take full height of parent */
+}
+
+/* Editor content area */
+.ProseMirror {
+  flex: 1;
+  padding: 32px;
   outline: none;
-  color: #334155;
-  line-height: 1.6;
   overflow-y: auto;
+  height: calc(100vh - 112px); /* Restore this to allow scrolling */
+  min-height: 0; /* Allow container to shrink */
+}
+
+/* List styling */
+.ProseMirror ul,
+.ProseMirror ol {
+  padding-left: 24px;
+  margin: 0.5em 0;
+}
+
+.ProseMirror li {
+  margin: 0.2em 0;
+  position: relative;
+}
+
+/* Bullet list hierarchy styling */
+.ProseMirror ul li {
+  list-style-type: disc; /* Filled circle for first level */
+}
+
+.ProseMirror ul ul li {
+  list-style-type: circle; /* Empty circle for second level */
+}
+
+.ProseMirror ul ul ul li {
+  list-style-type: square; /* Square for third level */
+}
+
+/* Numbered list specific styling */
+.ProseMirror ol li {
+  list-style-type: decimal; /* Use numbers */
+}
+
+/* Nested numbered list styling */
+.ProseMirror ol ol li {
+  list-style-type: lower-alpha; /* a, b, c for second level */
+}
+
+.ProseMirror ol ol ol li {
+  list-style-type: lower-roman; /* i, ii, iii for third level */
+}
+
+/* Nested list spacing */
+.ProseMirror ul ul,
+.ProseMirror ol ol,
+.ProseMirror ul ol,
+.ProseMirror ol ul {
+  margin: 0.2em 0;
+}
+
+/* Remove default margins from first and last elements */
+.ProseMirror > *:first-child {
+  margin-top: 0;
+}
+
+.ProseMirror > *:last-child {
+  margin-bottom: 0;
+}
+
+/* Consistent spacing for paragraphs and headings */
+.ProseMirror p,
+.ProseMirror h1,
+.ProseMirror h2,
+.ProseMirror h3 {
+  margin: 0.5em 0;
+  line-height: 1.6;
 }
 
 /* Style first line as title */
@@ -1228,6 +1310,7 @@ body {
   cursor: pointer;
   border-bottom: 1px solid #e2e8f0;
   transition: background-color 0.2s ease;
+  margin: 0;
 }
 
 .note-item:hover {
@@ -1241,8 +1324,8 @@ body {
 /* Note header with title and pin */
 .note-header {
   display: flex;
-  align-items: center;
   justify-content: space-between;
+  align-items: center;
   margin-bottom: 4px;
 }
 
@@ -1254,13 +1337,12 @@ body {
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
-  max-width: 180px;
 }
 
 /* Note preview text */
 .note-preview {
-  font-size: 0.75rem;
-  color: #64748b;
+  font-size: 12px;
+  color: #888;
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
@@ -1277,14 +1359,38 @@ body {
 .pin-button {
   border: none;
   background: none;
-  padding: 2px;
   cursor: pointer;
-  opacity: 0.6;
+  padding: 2px;
+  opacity: 0;  /* Hide by default */
   transition: opacity 0.2s ease;
 }
 
+/* Show pin button on note hover */
+.note-item:hover .pin-button {
+  opacity: 0.6;
+}
+
+/* Pin button hover state */
 .pin-button:hover {
   opacity: 1;
+}
+
+/* Pinned note styling - remove always visible pin */
+.note-item.pinned {
+  border-left: none; /* Remove the blue border */
+}
+
+/* Keep hover behavior consistent for pinned notes */
+.note-item.pinned .pin-button {
+  opacity: 0; /* Hide by default, even when pinned */
+}
+
+.note-item.pinned:hover .pin-button {
+  opacity: 0.6; /* Show on hover, same as unpinned notes */
+}
+
+.note-item.pinned .pin-button:hover {
+  opacity: 1; /* Full opacity on direct hover */
 }
 
 /* Note title input */
@@ -1345,358 +1451,63 @@ body {
 
 /* Custom plus sign */
 .add-note-button {
-  border: none;
-  background: none;
-  color: #64748b;
+  background-color: transparent !important;
+  border: 1px solid transparent !important;
+  padding: 0.5rem;
+  border-radius: 0.375rem;
+  display: flex;
+  align-items: center;
+  justify-content: center;
   cursor: pointer;
-  padding: 4px 8px;
-  border-radius: 4px;
+  color: #64748b;
   transition: all 0.2s ease;
+  outline: none !important;
 }
 
-/* Custom plus sign */
+.add-note-button:hover {
+  background-color: #f1f5f9 !important;
+}
+
+.add-note-button:focus {
+  outline: none !important;
+}
+
+/* Keep existing styles for the add-note-button inner elements */
 .add-note-button .nav-icon {
-  display: inline-block;
-  width: 16px;
-  height: 16px;
   position: relative;
+  width: 14px;
+  height: 14px;
 }
 
+/* Add the lines to create the plus sign */
 .add-note-button .nav-icon::before,
 .add-note-button .nav-icon::after {
   content: '';
   position: absolute;
-  background-color: currentColor;
-  width: 16px;
-  height: 1px; /* 1px thin line */
+  background-color: #64748b;
+  transition: all 0.2s ease;
+}
+
+.add-note-button .nav-icon::before {
+  top: 0;
+  left: 50%;
+  width: 2px;
+  height: 100%;
+  transform: translateX(-50%);
 }
 
 .add-note-button .nav-icon::after {
-  transform: rotate(90deg);
-}
-
-.add-note-button:hover {
-  color: #0f172a;
-  background-color: #f1f5f9;
-}
-
-/* Note item header */
-.note-header {
-  display: flex;
-  justify-content: space-between;
-  align-items: flex-start;
-  margin-bottom: 4px;
-}
-
-/* Pin button */
-.pin-button {
-  border: none;
-  background: none;
-  padding: 2px 4px;
-  cursor: pointer;
-  opacity: 0;
-  transition: all 0.2s ease;
-  font-size: 14px;
-}
-
-.note-item:hover .pin-button {
-  opacity: 0.6;
-}
-
-.note-item.pinned .pin-button {
-  opacity: 1;
-}
-
-.pin-button:hover {
-  opacity: 1;
-  transform: scale(1.1);
-}
-
-/* Pinned note styling */
-.note-item.pinned {
-  background-color: #fff8e1;
-}
-
-.note-item.pinned:hover {
-  background-color: #fff3cd;
-}
-
-.note-item.pinned.active {
-  background-color: #fff8e1;
-}
-
-/* Update existing note-item to accommodate new header */
-.note-item {
-  padding: 12px 16px;
-  border-bottom: 1px solid #e2e8f0;
-  cursor: pointer;
-  transition: all 0.2s ease;
-  font-family: inherit;
-}
-
-/* Pomodoro section in sidebar */
-.pomodoro-section {
-  padding: 6px;
-  border-top: 1px solid #e2e8f0;
-  margin-top: auto; /* Push to bottom of sidebar */
-}
-
-.pomodoro-title {
-  font-size: 0.875rem;
-  font-weight: 600;
-  color: #0f172a;
-  display: flex;
-  align-items: center;
-  gap: 8px;
-  margin-bottom: 12px;
-}
-
-.pomodoro-title span[role="img"] {
-  font-size: 1.1em;
-}
-
-/* Pomodoro styles */
-.pomodoro-container {
-  padding: 12px;
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  gap: 10px;
-}
-
-.timer {
-  font-size: 4rem;
-  font-weight: 500;
-  font-family: monospace;
-  color: #0f172a;
-}
-
-.timer-button {
-  padding: 12px 24px;
-  font-size: 1rem;
-  font-weight: 500;
-  color: white;
-  background-color: #1e3a8a;
-  border: none;
-  border-radius: 8px;
-  cursor: pointer;
-  transition: all 0.2s ease;
-}
-
-.timer-button:hover {
-  background-color: #1e40af;
-}
-
-/* Update Sidebar Pomodoro styles */
-.sidebar-pomodoro {
-  padding: 0;
-}
-
-.sidebar-pomodoro .nav-item {
-  padding: 6px 24px; /* Match parent nav-item padding */
-  margin-bottom: 4px;
-}
-
-.sidebar-pomodoro .nav-icon {
-  width: 20px; /* Match other nav icons */
-  text-align: center;
-}
-
-.sidebar-pomodoro .nav-text {
-  font-size: 0.8125rem;
-  color: #64748b;
-}
-
-/* Pomodoro button styles */
-.pomodoro-button {
-  margin-left: 14px;
-  margin-right: 14px;
-  padding: 6px 8px;
-  font-size: 0.75rem;
-  color: #64748b;
-  background-color: transparent;
-  border: 1px solid #64748b;
-  border-radius: 4px;
-  cursor: pointer;
-  transition: all 0.2s ease;
-  width: auto;
-}
-
-.pomodoro-button:hover {
-  color: #0f172a;
-  border-color: #0f172a;
-  background-color: transparent;
-}
-
-/* Update Digital clock styles */
-.digital-clock {
-  font-family: inherit;
-  font-size: 0.75rem;
-  font-weight: normal;
-  color: #64748b;
-  border: 1px solid #64748b;
-  border-radius: 4px;
-  padding: 6px 8px;
-  margin: 4px 14px;
-  text-align: center;
-  background-color: transparent;
-  letter-spacing: normal;
-}
-
-/* Update Pomodoro button styles */
-.pomodoro-button {
-  margin: 4px 14px;
-  padding: 6px 8px;
-  font-size: 0.75rem;
-  font-family: inherit;
-  font-weight: normal;
-  color: #64748b;
-  background-color: transparent;
-  border: 1px solid #64748b;
-  border-radius: 4px;
-  cursor: pointer;
-  transition: all 0.2s ease;
-  width: auto;
-}
-
-.pomodoro-button:hover,
-.digital-clock:hover {
-  color: #0f172a;
-  border-color: #0f172a;
-}
-
-/* Task text input styles */
-.task-text-input {
-  flex: 1;
-  border: none;
-  background: none;
-  font-size: 0.875rem;
-  font-family: inherit;
-  color: inherit;
-  padding: 4px 0;
-  min-width: 0;
-}
-
-.task-text-input:focus {
-  outline: none;
-}
-
-/* Update task text styles */
-.task-text {
-  flex: 1;
-  cursor: text;
-  padding: 4px 6px;
-  min-width: 0;
-  font-size: 0.875rem;
-  color: inherit;
-  outline: none;
-  white-space: pre-wrap;
-  word-break: break-word;
-  border-radius: 4px;
-  transition: background-color 0.2s ease;
-  min-height: 28px;
-  height: auto;
-  display: block;
-  line-height: 1.5;
-  -webkit-user-modify: read-write;
-  -webkit-spell-check: false;
-  -ms-spell-check: false;
-}
-
-/* Remove the empty state styles since we don't need them anymore */
-.task-text:empty::before {
-  content: none;
-}
-
-.task-item.completed .task-text {
-  color: #94a3b8;
-  text-decoration: line-through;
-}
-
-/* Remove the drag handle styles */
-.drag-handle,
-.task-item.dragging {
-  display: none;
-}
-
-/* Update task content to restore editing */
-.task-content {
-  display: flex;
-  align-items: flex-start;
-  gap: 12px;
-  min-width: 0;
-  flex: 1;
-  min-height: 28px;
-  padding: 2px 0;
-}
-
-/* Add drag handle styles */
-.drag-handle {
-  opacity: 0;
-  cursor: grab;
-  color: #94a3b8;
-  padding: 4px 8px;
-  user-select: none;
-  transition: all 0.2s ease;
-  margin-left: auto;
-  display: flex;
-  flex-direction: column;
-  gap: 3px;
-  height: 20px;
-  justify-content: center;
-  align-self: center;
-  margin-top: 4px;
-}
-
-/* Create three horizontal lines */
-.drag-handle::before,
-.drag-handle::after,
-.drag-handle span {
-  content: '';
-  display: block;
-  width: 14px;
-  height: 1px;
-  background-color: currentColor;
-  transition: all 0.2s ease;
-}
-
-/* Add the middle line using a span */
-.drag-handle span {
-  content: none;
-}
-
-/* Show drag handle on task hover */
-.task-item:hover .drag-handle {
-  opacity: 0.5;
-}
-
-/* Drag handle hover state */
-.drag-handle:hover {
-  opacity: 1 !important;
-  color: #64748b;
-}
-
-/* Style for when dragging */
-.task-item.dragging {
-  opacity: 0.5;
-  background-color: #f8fafc;
-}
-
-/* Add drag-over indicator */
-.task-item.drag-over::before {
-  content: '';
-  position: absolute;
-  top: -2px;
+  top: 50%;
   left: 0;
-  right: 0;
-  height: 1px;
-  background-color: #1e40af;
-  pointer-events: none;
+  width: 100%;
+  height: 2px;
+  transform: translateY(-50%);
 }
 
-.tasks-list.drag-over {
-  background-color: #f1f5f9;
-  border-radius: 4px;
+/* Add hover effect for the plus sign */
+.add-note-button:hover .nav-icon::before,
+.add-note-button:hover .nav-icon::after {
+  background-color: #0f172a;
 }
 
 /* Note content header */
@@ -1719,7 +1530,6 @@ body {
   font-size: 0.875rem;
   color: #64748b;
   width: 200px;
-
   outline: none;
 }
 
@@ -1728,106 +1538,1460 @@ body {
   border: 1px solid #1e3a8a; /* Dark blue border */
 }
 
-.note-content-input {
-  padding: 0 32px;
-  /* ... rest of the styles ... */
+/* TipTap Editor Styles */
+.tiptap-editor {
+  display: flex;
+  flex-direction: column;
+  flex: 1;
+  overflow: hidden;
 }
 
-/* App sidebar header/profile section */
-.app-sidebar-header {
-  height: 56px;
-  padding: 0 16px;
+.editor-toolbar {
+  padding: 8px 32px;
   border-bottom: 1px solid #e2e8f0;
   display: flex;
+  gap: 8px;
   align-items: center;
-  gap: 12px;
 }
 
-/* User avatar */
-.user-avatar {
-  width: 32px;
-  height: 32px;
-  border-radius: 50%;
-  background-color: #e2e8f0;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  font-size: 14px;
-  color: #64748b;
-  font-weight: 500;
-}
-
-/* User info */
-.user-info {
-  flex: 1;
-  min-width: 0;
-}
-
-.user-name {
-  font-size: 14px;
-  font-weight: 500;
-  color: #0f172a;
-  margin: 0;
-}
-
-/* Update delete note button */
-.delete-note-button {
+.editor-toolbar button {
+  padding: 4px 8px;
   border: none;
   background: none;
   color: #64748b;
-  cursor: pointer;
-  padding: 4px 8px;
   border-radius: 4px;
+  cursor: pointer;
+  font-size: 14px;
   transition: all 0.2s ease;
-  opacity: 0.6;
+}
+
+.editor-toolbar button:hover {
+  background-color: #f1f5f9;
+  color: #0f172a;
+}
+
+.editor-toolbar button.is-active {
+  color: #1e3a8a;
+  background-color: #f1f5f9;
+}
+
+.toolbar-divider {
+  width: 1px;
+  height: 24px;
+  background-color: #e2e8f0;
+  margin: 0 4px;
+}
+
+.ProseMirror {
+  flex: 1;
+  padding: 32px;
+  outline: none;
+  overflow-y: auto;
+}
+
+/* Update heading styles with new names but keep same hierarchy */
+.ProseMirror h1 {
+  font-size: 2.25rem;  /* Slightly larger */
+  font-weight: 600;
+  color: #0f172a;
+  margin: 0.5em 0;
+  line-height: 1.2;
+}
+
+.ProseMirror h2 {
+  font-size: 1.75rem;
+  font-weight: 600;
+  color: #0f172a;
+  margin: 0.5em 0;
+  line-height: 1.2;
+}
+
+.ProseMirror h3 {
+  font-size: 1.5rem;
+  font-weight: 600;
+  color: #0f172a;
+  margin: 0.5em 0;
+  line-height: 1.2;
+}
+
+/* Make sure text is visible */
+.ProseMirror * {
+  color: #0f172a;
+}
+
+/* Add styles for when headings are being edited */
+.ProseMirror h1.is-empty:first-child::before,
+.ProseMirror h2.is-empty:first-child::before,
+.ProseMirror h3.is-empty:first-child::before {
+  color: #94a3b8;
+  content: attr(data-placeholder);
+  float: left;
+  height: 0;
+  pointer-events: none;
+}
+
+/* Format button styles */
+.format-button-bold {
+  font-weight: 700 !important;
+}
+
+.format-button-italic {
+  font-style: italic !important;
+}
+
+.format-button-underline {
+  text-decoration: underline !important;
+}
+
+/* Keep existing button styles but add these classes */
+.editor-toolbar button.format-button-bold,
+.editor-toolbar button.format-button-italic,
+.editor-toolbar button.format-button-underline {
+  padding: 4px 8px;
+  border: none;
+  background: none;
+  color: #64748b;
+  border-radius: 4px;
+  cursor: pointer;
+  font-size: 14px;
+  transition: all 0.2s ease;
+}
+
+/* Keep hover and active states */
+.editor-toolbar button.format-button-bold:hover,
+.editor-toolbar button.format-button-italic:hover,
+.editor-toolbar button.format-button-underline:hover {
+  background-color: #f1f5f9;
+  color: #0f172a;
+}
+
+.editor-toolbar button.format-button-bold.is-active,
+.editor-toolbar button.format-button-italic.is-active,
+.editor-toolbar button.format-button-underline.is-active {
+  color: #1e3a8a;
+  background-color: #f1f5f9;
+}
+
+/* Header layout */
+.header-left {
+  display: flex;
+  align-items: center;
+  gap: 24px; /* Increase from 8px to 16px */
+}
+
+/* Format toggle button */
+.format-toggle-button {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  background-color: transparent !important;
+  border: 1px solid transparent !important;
+  padding: 0.5rem 0.75rem;
+  border-radius: 0.375rem;
+  font-size: 0.875rem;
+  cursor: pointer;
+  color: #64748b;
+  transition: all 0.2s ease;
+  outline: none !important;
+}
+
+.format-toggle-button:hover {
+  background-color: #f1f5f9 !important;
+}
+
+.format-toggle-button:focus {
+  outline: none !important;
+}
+
+.format-toggle-button.is-active {
+  background-color: #e2e8f0 !important;
+}
+
+/* Update delete note button style */
+.delete-note-button {
+  background-color: transparent !important;
+  border: 1px solid transparent !important;
+  padding: 0.5rem;
+  border-radius: 0.375rem;
+  font-size: 0.875rem;
+  cursor: pointer;
+  color: #64748b;
+  transition: all 0.2s ease;
+  outline: none !important;
 }
 
 .delete-note-button:hover {
-  color: #ef4444; /* Red color on hover */
-  opacity: 1;
+  background-color: #f1f5f9 !important;
 }
 
-/* Add new note button in content header */
+.delete-note-button:focus {
+  outline: none !important;
+}
+
+/* Update add note button style */
 .add-note-button {
-  border: none;
-  background: none;
-  color: #64748b;
-  cursor: pointer;
-  padding: 4px 8px;
-  border-radius: 4px;
-  transition: all 0.2s ease;
+  background-color: transparent !important;
+  border: 1px solid transparent !important;
+  padding: 0.5rem;
+  border-radius: 0.375rem;
   display: flex;
   align-items: center;
   justify-content: center;
-  height: 32px; /* Fixed height for better centering */
-  width: 32px; /* Fixed width for better centering */
+  cursor: pointer;
+  color: #64748b;
+  transition: all 0.2s ease;
+  outline: none !important;
 }
 
-/* Custom plus sign */
+.add-note-button:hover {
+  background-color: #f1f5f9 !important;
+}
+
+.add-note-button:focus {
+  outline: none !important;
+}
+
+/* Keep existing styles for the add-note-button inner elements */
 .add-note-button .nav-icon {
-  display: inline-block;
-  width: 16px;
-  height: 16px;
   position: relative;
+  width: 14px;
+  height: 14px;
 }
 
+/* Add the lines to create the plus sign */
 .add-note-button .nav-icon::before,
 .add-note-button .nav-icon::after {
   content: '';
   position: absolute;
-  background-color: currentColor;
-  width: 16px;
-  height: 1px;
-  top: 50%;
+  background-color: #64748b;
+  transition: all 0.2s ease;
+}
+
+.add-note-button .nav-icon::before {
+  top: 0;
   left: 50%;
-  transform: translate(-50%, -50%);
+  width: 2px;
+  height: 100%;
+  transform: translateX(-50%);
 }
 
 .add-note-button .nav-icon::after {
-  transform: translate(-50%, -50%) rotate(90deg);
+  top: 50%;
+  left: 0;
+  width: 100%;
+  height: 2px;
+  transform: translateY(-50%);
+}
+
+/* Add hover effect for the plus sign */
+.add-note-button:hover .nav-icon::before,
+.add-note-button:hover .nav-icon::after {
+  background-color: #0f172a;
+}
+
+/* Note card styling */
+.note-item {
+  padding: 12px 14px;
+  border-bottom: 1px solid #e2e8f0;
+  cursor: pointer;
+  transition: background-color 0.2s ease;
+}
+
+.note-item:hover {
+  background-color: #f8fafc;
+}
+
+.note-item.active {
+  background-color: #f1f5f9;
+}
+
+.note-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 0px;
+}
+
+.note-title {
+  font-weight: 400;
+  color: #0f172a;
+  font-size: 0.875rem;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.note-preview {
+  color: #64748b;
+  font-size: 0.813rem;
+  margin-bottom: 4px;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.note-date {
+  color: #94a3b8;
+  font-size: 0.75rem;
+}
+
+/* Pin button styling */
+.pin-button {
+  border: none;
+  background: none;
+  cursor: pointer;
+  padding: 2px;
+  opacity: 0;  /* Hide by default */
+  transition: opacity 0.2s ease;
+}
+
+/* Show pin button on note hover */
+.note-item:hover .pin-button {
+  opacity: 0.6;
+}
+
+/* Pin button hover state */
+.pin-button:hover {
+  opacity: 1;
+}
+
+/* Pinned note styling - remove always visible pin */
+.note-item.pinned {
+  border-left: none; /* Remove the blue border */
+}
+
+/* Keep hover behavior consistent for pinned notes */
+.note-item.pinned .pin-button {
+  opacity: 0; /* Hide by default, even when pinned */
+}
+
+.note-item.pinned:hover .pin-button {
+  opacity: 0.6; /* Show on hover, same as unpinned notes */
+}
+
+.note-item.pinned .pin-button:hover {
+  opacity: 1; /* Full opacity on direct hover */
+}
+
+/* Text size buttons in toolbar */
+.editor-toolbar button {
+  padding: 4px 8px;
+  border: none;
+  background: none;
+  color: #64748b;
+  border-radius: 4px;
+  cursor: pointer;
+  font-size: 14px;
+  transition: all 0.2s ease;
+}
+
+/* Add specific styles for text size buttons */
+.editor-toolbar button[data-size="large"] {
+  font-size: 16px;
+  font-weight: 500;
+}
+
+.editor-toolbar button[data-size="medium"] {
+  font-size: 14px;
+  font-weight: 500;
+}
+
+.editor-toolbar button[data-size="normal"] {
+  font-size: 13px;
+  font-weight: 400;
+}
+
+/* Hover state */
+.editor-toolbar button:hover {
+  background-color: #f1f5f9;
+  color: #0f172a;
+}
+
+/* Active state */
+.editor-toolbar button.is-active {
+  color: #1e3a8a;
+  background-color: #f1f5f9;
+}
+
+/* Add section headers for pinned/unpinned notes */
+.notes-section-header {
+  padding: 16px 16px 0px 16px; /* Reduce bottom padding from 16px to 8px */
+  height: 48px; /* Reduce height from 56px to 48px */
+  display: flex;
+  align-items: center;
+  font-size: 0.75rem;
+  font-weight: 500;
+  color: #64748b;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  background-color: transparent;
+  border-bottom: none;
+  margin: 0;
+  width: 100%;
+}
+
+/* Fix the border issue for the unpinned section header */
+.notes-section-header.unpinned {
+  margin-top: -1px;
+  border-top: 1px solid #e2e8f0;
+  padding-top: 16px; /* Reduce from 24px to 16px */
+}
+
+/* Add extra padding to the first pinned note section */
+.notes-section-header:first-child {
+  padding-top: 16px; /* Reduce from 24px to 16px */
+}
+
+/* Link styling in editor */
+.ProseMirror a {
+  color: #1e3a8a;
+  text-decoration: underline;
+  cursor: pointer;
+  transition: color 0.2s ease;
+}
+
+.ProseMirror a:hover {
+  color: #2563eb;
+}
+
+/* Active link in editor */
+.ProseMirror a.is-active {
+  background-color: rgba(37, 99, 235, 0.1);
+}
+
+/* Task command feedback styling */
+.task-command-feedback {
+  color: #1e3a8a;
+  font-style: italic;
+  background-color: rgba(30, 58, 138, 0.1);
+  padding: 8px 12px;
+  border-radius: 4px;
+  margin: 8px 0;
+  font-size: 0.875rem;
+  display: block;
+  border-left: 3px solid #1e3a8a;
+}
+
+/* Task command help styling */
+.task-command-help {
+  margin-top: 16px;
+  padding: 12px;
+  background-color: #f8fafc;
+  border-radius: 4px;
+  border: 1px solid #e2e8f0;
+  font-size: 0.75rem;
+  color: #64748b;
+  display: none; /* Hidden by default */
+}
+
+.tiptap-editor:focus-within .task-command-help {
+  display: block; /* Show when editor is focused */
+}
+
+.task-command-help p {
+  margin: 4px 0;
+}
+
+.task-command-help code {
+  background-color: #f1f5f9;
+  padding: 2px 4px;
+  border-radius: 3px;
+  font-family: monospace;
+  color: #1e3a8a;
+}
+
+/* Task added notification */
+.task-added-notification {
+  position: fixed;
+  bottom: 20px;
+  right: 20px;
+  background-color: #1e3a8a;
+  color: white;
+  padding: 12px 16px;
+  border-radius: 4px;
+  box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+  z-index: 1000;
+  animation: slide-in 0.3s ease-out;
+  font-size: 0.875rem;
+}
+
+.task-added-notification.fade-out {
+  animation: fade-out 0.5s ease-out forwards;
+}
+
+@keyframes slide-in {
+  from { transform: translateY(20px); opacity: 0; }
+  to { transform: translateY(0); opacity: 1; }
+}
+
+@keyframes fade-out {
+  from { opacity: 1; }
+  to { opacity: 0; }
+}
+
+/* Task buttons in toolbar */
+.task-button {
+  background-color: #f1f5f9;
+  color: #1e3a8a;
+  border: none;
+  border-radius: 4px;
+  padding: 4px 8px;
+  font-size: 0.75rem;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.task-button:hover {
+  background-color: #e2e8f0;
+}
+
+/* Task markers in editor */
+.task-added-marker {
+  display: inline-block;
+  margin-right: 4px;
+  font-size: 1rem;
+  vertical-align: middle;
+}
+
+.task-added-marker.work-todo,
+.task-added-marker.private-todo {
+  color: #1e3a8a; /* Blue for todo tasks */
+}
+
+.task-added-marker.work-waiting,
+.task-added-marker.private-waiting {
+  color: #b45309; /* Amber for waiting tasks */
+}
+
+/* Custom task entry styling */
+.task-entry-list {
+  list-style: none;
+  padding: 0;
+  margin: 8px 0 16px 0;
+}
+
+.task-entry-list li {
+  display: flex;
+  align-items: center;
+  padding: 4px 0;
+  margin: 4px 0;
+}
+
+.task-checkbox {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 18px;
+  height: 18px;
+  margin-right: 8px;
+  color: #1e3a8a;
+  font-size: 1rem;
+  cursor: pointer;
+}
+
+.task-entry-text {
+  flex: 1;
+  min-height: 24px;
+  border-bottom: 1px solid transparent;
+  transition: border-color 0.2s;
+  outline: none;
+}
+
+.task-entry-text:empty:not(:focus)::before {
+  content: "Type task here and press Enter";
+  color: #94a3b8;
+  font-style: italic;
+}
+
+.task-entry-text:focus {
+  border-bottom: 1px solid #cbd5e1;
+}
+
+/* Task prompt styling */
+.task-prompt {
+  margin: 10px 0 5px 0;
+  color: #1e3a8a;
+}
+
+/* Task input styling */
+.task-input {
+  border: 1px solid #e2e8f0;
+  border-radius: 4px;
+  padding: 8px 12px;
+  margin-bottom: 5px;
+  outline: none;
+  min-height: 36px;
+}
+
+.task-input:empty:not(:focus)::before {
+  content: "Type task here and press Enter";
+  color: #94a3b8;
+  font-style: italic;
+}
+
+/* Added task item styling */
+.task-item-added {
+  display: flex;
+  align-items: center;
+  padding: 4px 0;
+  margin: 4px 0;
+  color: #64748b;
+}
+
+.task-marker {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 18px;
+  height: 18px;
+  margin-right: 8px;
+  color: #1e3a8a;
+  font-size: 1rem;
+}
+
+/* Styling for task lists */
+ul[data-type="taskList"] {
+  list-style: none !important;
+  padding: 0 !important;
+  margin: 1em 0 !important;
+}
+
+li[data-type="taskItem"] {
+  display: flex !important;
+  align-items: center !important;
+  margin: 0.5em 0 !important;
+  padding-left: 0 !important;
+  position: relative !important;
+}
+
+/* Remove bullets from task items */
+li[data-type="taskItem"]::before {
+  display: none !important;
+}
+
+.ProseMirror ul[data-type="taskList"] {
+  list-style-type: none !important;
+}
+
+.ProseMirror li[data-type="taskItem"] {
+  display: flex !important;
+  align-items: center !important;
+  list-style-type: none !important;
+}
+
+.ProseMirror li[data-type="taskItem"]::before {
+  display: none !important;
+}
+
+/* Style the checkboxes to match the todo list */
+li[data-type="taskItem"] > label {
+  display: inline-flex !important;
+  align-items: center !important;
+  margin-right: 0.5em !important;
+  cursor: pointer !important;
+}
+
+li[data-type="taskItem"] > label > input[type="checkbox"] {
+  appearance: none !important;
+  -webkit-appearance: none !important;
+  width: 18px !important;
+  height: 18px !important;
+  border: 2px solid #3b82f6 !important;
+  border-radius: 50% !important;
+  margin: 0 !important;
+  position: relative !important;
+  top: 0 !important;
+  cursor: pointer !important;
+  transition: all 0.2s ease !important;
+  background-color: white !important;
+}
+
+li[data-type="taskItem"] > label > input[type="checkbox"]:hover {
+  box-shadow: 0 0 0 2px rgba(59, 130, 246, 0.3) !important;
+}
+
+li[data-type="taskItem"] > label > input[type="checkbox"]:checked {
+  background-color: #3b82f6 !important;
+  border-color: #3b82f6 !important;
+}
+
+li[data-type="taskItem"] > label > input[type="checkbox"]:checked::after {
+  content: '✓' !important;
+  color: white !important;
+  position: absolute !important;
+  font-size: 12px !important;
+  top: -1px !important;
+  left: 3px !important;
+  display: block !important;
+}
+
+/* Additional specific selectors for TipTap editor */
+.ProseMirror li[data-type="taskItem"] > label > input[type="checkbox"] {
+  appearance: none !important;
+  -webkit-appearance: none !important;
+  -moz-appearance: none !important;
+  width: 18px !important;
+  height: 18px !important;
+  border: 2px solid #3b82f6 !important;
+  border-radius: 50% !important;
+  margin: 0 !important;
+  position: relative !important;
+  cursor: pointer !important;
+  background-color: white !important;
+}
+
+.ProseMirror li[data-type="taskItem"] > label > input[type="checkbox"]:checked {
+  background-color: #3b82f6 !important;
+  border-color: #3b82f6 !important;
+}
+
+.ProseMirror li[data-type="taskItem"] > label > input[type="checkbox"]:checked::after {
+  content: '✓' !important;
+  color: white !important;
+  position: absolute !important;
+  font-size: 12px !important;
+  top: -1px !important;
+  left: 3px !important;
+  display: block !important;
+}
+
+/* Improve text alignment */
+li[data-type="taskItem"] > div {
+  display: flex !important;
+  align-items: center !important;
+  min-height: 22px !important;
+  margin-left: 4px !important;
+  font-size: 15px !important;
+}
+
+/* Work Todo tasks */
+li[data-type="taskItem"].task-work-todo > label > input:checked {
+  background-color: #1e3a8a !important; /* Blue */
+}
+
+/* Work Waiting tasks */
+li[data-type="taskItem"].task-work-waiting > label > input:checked {
+  background-color: #b45309 !important; /* Amber */
+}
+
+/* Private Todo tasks */
+li[data-type="taskItem"].task-private-todo > label > input:checked {
+  background-color: #047857 !important; /* Green */
+}
+
+/* Private Waiting tasks */
+li[data-type="taskItem"].task-private-waiting > label > input:checked {
+  background-color: #b45309 !important; /* Amber */
+}
+
+/* Animation for tasks being transferred */
+@keyframes task-transfer {
+  0% { 
+    transform: translateY(0);
+    opacity: 1;
+  }
+  50% {
+    transform: translateY(-20px);
+    opacity: 0.5;
+  }
+  100% {
+    transform: translateY(-40px);
+    opacity: 0;
+  }
+}
+
+/* Apply the animation when a task is added */
+li[data-type="taskItem"].task-adding {
+  animation: task-transfer 0.5s ease-out;
+}
+
+/* Custom Task Item Styling */
+.custom-task-item {
+  display: flex !important;
+  align-items: center !important;
+  margin: 0.5em 0 !important;
+  padding-left: 0 !important;
+  position: relative !important;
+  list-style-type: none !important;
+}
+
+.custom-task-item::before {
+  display: none !important;
+}
+
+.custom-task-checkbox-wrapper {
+  display: inline-flex !important;
+  align-items: center !important;
+  margin-right: 0.5em !important;
+  cursor: pointer !important;
+}
+
+.custom-task-checkbox {
+  appearance: none !important;
+  -webkit-appearance: none !important;
+  -moz-appearance: none !important;
+  width: 18px !important;
+  height: 18px !important;
+  border: 2px solid #3b82f6 !important;
+  border-radius: 50% !important;
+  margin: 0 !important;
+  position: relative !important;
+  cursor: pointer !important;
+  background-color: white !important;
+  transition: all 0.2s ease !important;
+}
+
+.custom-task-checkbox:hover {
+  box-shadow: 0 0 0 2px rgba(59, 130, 246, 0.3) !important;
+}
+
+.custom-task-checkbox:checked {
+  background-color: #3b82f6 !important;
+  border-color: #3b82f6 !important;
+}
+
+.custom-task-item[data-checked="true"] .custom-task-checkbox {
+  background-color: #3b82f6 !important;
+  border-color: #3b82f6 !important;
+}
+
+.custom-task-item[data-checked="true"] .custom-task-checkbox::after {
+  content: '✓' !important;
+  color: white !important;
+  position: absolute !important;
+  font-size: 12px !important;
+  top: -1px !important;
+  left: 3px !important;
+  display: block !important;
+}
+
+.custom-task-content {
+  display: flex !important;
+  align-items: center !important;
+  min-height: 22px !important;
+  margin-left: 4px !important;
+  font-size: 15px !important;
+}
+
+/* Override TipTap's default task item styling */
+.ProseMirror ul[data-type="taskList"] {
+  list-style-type: none !important;
+  padding-left: 0 !important;
+}
+
+.ProseMirror li.custom-task-item {
+  list-style-type: none !important;
+  display: flex !important;
+  align-items: center !important;
+}
+
+.ProseMirror li.custom-task-item::before {
+  display: none !important;
+}
+
+/* Override checkbox appearance completely */
+.ProseMirror ul[data-type="taskList"] li[data-type="taskItem"] label input[type="checkbox"],
+.custom-task-checkbox,
+li[data-type="taskItem"] > label > input[type="checkbox"] {
+  appearance: none !important;
+  -webkit-appearance: none !important;
+  -moz-appearance: none !important;
+  width: 18px !important;
+  height: 18px !important;
+  border: 2px solid #3b82f6 !important;
+  border-radius: 50% !important;
+  outline: none !important;
+  margin: 0 !important;
+  position: relative !important;
+  cursor: pointer !important;
+  background-color: white !important;
+  transition: all 0.2s ease !important;
+}
+
+.ProseMirror ul[data-type="taskList"] li[data-type="taskItem"] label input[type="checkbox"]:checked,
+.custom-task-checkbox:checked,
+li[data-type="taskItem"] > label > input[type="checkbox"]:checked {
+  background-color: #3b82f6 !important;
+  border-color: #3b82f6 !important;
+}
+
+.ProseMirror ul[data-type="taskList"] li[data-type="taskItem"] label input[type="checkbox"]:checked::after,
+.custom-task-checkbox:checked::after,
+li[data-type="taskItem"] > label > input[type="checkbox"]:checked::after {
+  content: '✓' !important;
+  color: white !important;
+  position: absolute !important;
+  font-size: 12px !important;
+  top: -1px !important;
+  left: 3px !important;
+  display: block !important;
+}
+
+/* Ensure no square borders are applied */
+input[type="checkbox"] {
+  border-radius: 50% !important;
+}
+
+/* Force all checkboxes to be round */
+.ProseMirror * input[type="checkbox"] {
+  border-radius: 50% !important;
+  -webkit-border-radius: 50% !important;
+  -moz-border-radius: 50% !important;
+}
+
+/* Task buttons in note header */
+.task-buttons-container {
+  display: none;
+}
+
+/* Task dropdown styles */
+.task-dropdown-container {
+  position: relative;
+  display: inline-block;
+}
+
+.task-dropdown-button {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-weight: 400;
+  font-size: 14px;
+  padding: 6px 10px;
+  border-radius: 4px;
+  background-color: transparent;
+  border: 1px solid transparent !important; /* Added !important to override any other styles */
+  cursor: pointer;
+  color: #4b5563;
+  transition: all 0.2s ease;
+  margin-left: 8px;
+  outline: none; /* Remove outline on focus */
+}
+
+.task-dropdown-button:hover {
+  background-color: #f1f5f9;
+  border-color: transparent !important; /* Added !important */
+}
+
+.task-dropdown-button:focus {
+  border-color: transparent !important; /* Added focus state */
+  outline: none;
+  box-shadow: none;
+}
+
+.task-dropdown-button.active {
+  background-color: #e2e8f0;
+  border-color: transparent !important; /* Added !important */
+}
+
+.task-dropdown-menu {
+  position: absolute;
+  top: 100%;
+  left: 0;
+  width: 180px;
+  background-color: white;
+  border-radius: 6px;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+  padding: 4px;
+  z-index: 100;
+  margin-top: 4px;
+  animation: dropdown-fade-in 0.2s ease;
+}
+
+@keyframes dropdown-fade-in {
+  from {
+    opacity: 0;
+    transform: translateY(-8px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.task-dropdown-item {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 8px 12px;
+  width: 100%;
+  text-align: left;
+  background: none;
+  border: none;
+  border-radius: 4px;
+  cursor: pointer;
+  font-size: 14px;
+  color: #4b5563;
+  transition: all 0.2s;
+}
+
+.task-dropdown-item:hover {
+  background-color: #f1f5f9;
+}
+
+.task-dropdown-item.work-todo:hover,
+.task-dropdown-item.work-waiting:hover {
+  background-color: #dbeafe;
+  color: #1e40af;
+}
+
+.task-dropdown-item.private-todo:hover,
+.task-dropdown-item.private-waiting:hover {
+  background-color: #dcfce7;
+  color: #166534;
+}
+
+.task-dropdown-item span {
+  font-size: 16px;
+}
+
+/* Mobile responsiveness */
+@media (max-width: 768px) {
+  .task-dropdown-button {
+    padding: 4px 8px;
+    font-size: 13px;
+  }
+  
+  .task-dropdown-menu {
+    width: 160px;
+  }
+  
+  .task-dropdown-item {
+    padding: 6px 10px;
+    font-size: 13px;
+  }
+}
+
+/* Auth Styles */
+.auth-wrapper {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  min-height: 100vh;
+  background-color: #f8fafc;
+}
+
+.auth-container {
+  width: 100%;
+  max-width: 400px;
+  padding: 2rem;
+  background-color: white;
+  border-radius: 8px;
+  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+}
+
+.auth-container h2 {
+  margin-bottom: 1.5rem;
+  color: #0f172a;
+  text-align: center;
+  font-size: 1.5rem;
+}
+
+.auth-form {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+}
+
+.form-group {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+
+.form-group label {
+  font-size: 0.875rem;
+  color: #64748b;
+}
+
+.form-group input {
+  padding: 0.75rem;
+  border: 1px solid #e2e8f0;
+  border-radius: 4px;
+  font-size: 0.875rem;
+  color: #0f172a;
+  transition: border-color 0.2s;
+}
+
+.form-group input:focus {
+  outline: none;
+  border-color: #1e3a8a;
+}
+
+.auth-button {
+  margin-top: 1rem;
+  padding: 0.75rem;
+  background-color: #1e3a8a;
+  color: white;
+  border: none;
+  border-radius: 4px;
+  font-size: 0.875rem;
+  font-weight: 500;
+  cursor: pointer;
+  transition: background-color 0.2s;
+}
+
+.auth-button:hover {
+  background-color: #1e40af;
+}
+
+.auth-button:disabled {
+  background-color: #94a3b8;
+  cursor: not-allowed;
+}
+
+.auth-footer {
+  margin-top: 1.5rem;
+  text-align: center;
+  font-size: 0.875rem;
+  color: #64748b;
+}
+
+.auth-link {
+  background: none;
+  border: none;
+  color: #1e3a8a;
+  cursor: pointer;
+  font-size: 0.875rem;
+  text-decoration: underline;
+  padding: 0;
+}
+
+.auth-link:hover {
+  color: #1e40af;
+}
+
+.auth-error {
+  padding: 0.75rem;
+  margin-bottom: 1rem;
+  background-color: #fee2e2;
+  border: 1px solid #fecaca;
+  border-radius: 4px;
+  color: #ef4444;
+  font-size: 0.875rem;
+}
+
+.auth-success {
+  padding: 0.75rem;
+  margin-bottom: 1rem;
+  background-color: #dcfce7;
+  border: 1px solid #bbf7d0;
+  border-radius: 4px;
+  color: #16a34a;
+  font-size: 0.875rem;
+}
+
+/* Loading Spinner */
+.loading-container {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 2rem;
+  background-color: rgba(255, 255, 255, 0.9);
+  border-radius: 8px;
+}
+
+.loading-container.full-screen {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  z-index: 1000;
+  background-color: #f8fafc;
+}
+
+.loading-spinner {
+  width: 40px;
+  height: 40px;
+  border: 3px solid rgba(0, 0, 0, 0.1);
+  border-radius: 50%;
+  border-top-color: #1e3a8a;
+  animation: spin 1s ease-in-out infinite;
+  margin-bottom: 1rem;
+}
+
+@keyframes spin {
+  to { transform: rotate(360deg); }
+}
+
+.loading-container p {
+  color: #64748b;
+  font-size: 0.875rem;
+}
+
+/* Sign Out Button */
+.sign-out-button {
+  background: none;
+  border: 1px solid #e2e8f0;
+  border-radius: 4px;
+  padding: 6px 12px;
+  font-size: 0.75rem;
+  color: #64748b;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.sign-out-button:hover {
+  background-color: #f1f5f9;
+  color: #0f172a;
+}
+
+/* TipTap Editor Styles */
+.tiptap-editor {
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+  width: 100%;
+}
+
+.editor-toolbar {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 5px;
+  padding: 8px;
+  background-color: #f5f5f5;
+  border-bottom: 1px solid #ddd;
+}
+
+.editor-toolbar button {
+  background-color: white;
+  border: 1px solid #ddd;
+  border-radius: 4px;
+  padding: 5px 10px;
+  cursor: pointer;
+  font-size: 14px;
+  min-width: 30px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.editor-toolbar button:hover {
+  background-color: #f0f0f0;
+}
+
+.editor-toolbar button.is-active {
+  background-color: #e6f7ff;
+  border-color: #91d5ff;
+}
+
+.editor-content {
+  flex: 1;
+  overflow-y: auto;
+  padding: 16px;
+}
+
+.ProseMirror {
+  outline: none;
+  min-height: 100px;
+}
+
+.ProseMirror p {
+  margin: 0.5em 0;
+}
+
+.ProseMirror ul[data-type="taskList"] {
+  list-style: none;
+  padding: 0;
+}
+
+.ProseMirror li[data-type="taskItem"] {
+  display: flex;
+  margin-bottom: 0.5em;
+}
+
+.ProseMirror li[data-type="taskItem"] label {
+  display: flex;
+  align-items: center;
+  margin-right: 0.5em;
+}
+
+.ProseMirror li[data-type="taskItem"] input[type="checkbox"] {
+  margin-right: 0.5em;
+}
+
+.ProseMirror li[data-type="taskItem"].checked {
+  text-decoration: line-through;
+  color: #888;
+}
+
+.task-notification {
+  position: fixed;
+  bottom: 20px;
+  right: 20px;
+  background-color: #4caf50;
+  color: white;
+  padding: 10px 20px;
+  border-radius: 4px;
+  box-shadow: 0 2px 5px rgba(0, 0, 0, 0.2);
+  z-index: 1000;
+  animation: fadeIn 0.3s, fadeOut 0.3s 2.7s;
+}
+
+@keyframes fadeIn {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+
+@keyframes fadeOut {
+  from { opacity: 1; }
+  to { opacity: 0; }
+}
+
+/* Notes Component Styles */
+.notes-layout {
+  display: flex;
+  height: 100%;
+  width: 100%;
+}
+
+.notes-sidebar {
+  width: 300px;
+  border-right: 1px solid #ddd;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+}
+
+.notes-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 10px;
+  border-bottom: 1px solid #ddd;
+}
+
+.notes-header h2 {
+  margin: 0;
+  font-size: 18px;
+}
+
+.add-note-button {
+  background: none;
+  border: none;
+  cursor: pointer;
+  font-size: 20px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 30px;
+  height: 30px;
+  border-radius: 50%;
 }
 
 .add-note-button:hover {
-  color: #0f172a;
-  background-color: #f1f5f9;
+  background-color: #f0f0f0;
+}
+
+.notes-list {
+  flex: 1;
+  overflow-y: auto;
+  padding: 10px;
+}
+
+.note-item {
+  padding: 10px;
+  border-radius: 4px;
+  margin-bottom: 10px;
+  cursor: pointer;
+  border: 1px solid #ddd;
+}
+
+.note-item:hover {
+  background-color: #f5f5f5;
+}
+
+.note-item.active {
+  background-color: #e6f7ff;
+  border-color: #91d5ff;
+}
+
+.note-item.pinned {
+  border-left: 3px solid #1890ff;
+}
+
+.note-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 5px;
+}
+
+.note-title {
+  font-weight: bold;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.pin-button {
+  background: none;
+  border: none;
+  cursor: pointer;
+  font-size: 16px;
+}
+
+.note-preview {
+  font-size: 12px;
+  color: #888;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+/* Notes section headers */
+.notes-section-header {
+  font-size: 12px;
+  font-weight: bold;
+  color: #888;
+  margin: 15px 0 5px;
+  padding: 0 5px;
+}
+
+.notes-section-header.unpinned {
+  margin-top: 20px;
+}
+
+/* Note content container */
+.note-content {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+}
+
+.note-content-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 10px;
+  border-bottom: 1px solid #ddd;
+}
+
+.note-editor-container {
+  flex: 1;
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
+}
+
+.empty-note {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  height: 100%;
+  color: #888;
+  padding: 20px;
+}
+
+/* Fix for note preview */
+.note-preview {
+  font-size: 12px;
+  color: #888;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  margin-bottom: 5px;
 }

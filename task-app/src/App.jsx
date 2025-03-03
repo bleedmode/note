@@ -2,116 +2,351 @@ import { useState, useEffect, useRef } from 'react'
 import './App.css'
 import Notes from './components/Notes'
 import Pomodoro from './components/Pomodoro'
+import AuthContainer from './components/Auth/AuthContainer'
+import { useAuth } from './context/AuthContext'
+import { supabase } from './utils/supabaseClient'
+import LoadingSpinner from './components/LoadingSpinner'
 
 function App() {
+  // Get auth state from context
+  const { user, loading, signOut } = useAuth();
+  
   // Add state to track active tab
   const [activeTab, setActiveTab] = useState('work') // 'work' or 'private'
-  // Load initial state from localStorage or use empty arrays
-  const [workTasks, setWorkTasks] = useState(() => {
-    const saved = localStorage.getItem('workTasks')
-    return saved ? JSON.parse(saved) : []
-  })
-  const [privateTasks, setPrivateTasks] = useState(() => {
-    const saved = localStorage.getItem('privateTasks')
-    return saved ? JSON.parse(saved) : []
-  })
-  const [newTask, setNewTask] = useState('')
-  const [newWaitingTask, setNewWaitingTask] = useState('')
-  const [newTodoTask, setNewTodoTask] = useState('')
-  const [editingTaskId, setEditingTaskId] = useState(null)
+  
   // Add new state for note folders at the top of the App component
   const [noteFolders, setNoteFolders] = useState(() => {
     const saved = localStorage.getItem('noteFolders')
     return saved ? JSON.parse(saved) : ['All Notes']
   })
+  
   // Add these state variables at the top with other state declarations
   const [timeLeft, setTimeLeft] = useState(25 * 60) // 25 minutes in seconds
   const [isTimerRunning, setIsTimerRunning] = useState(false)
+  
   // Add dragOver state to track the drop target
   const [dragOverTask, setDragOverTask] = useState(null);
+  
+  // Form input states
+  const [newTask, setNewTask] = useState('')
+  const [newWaitingTask, setNewWaitingTask] = useState('')
+  const [newTodoTask, setNewTodoTask] = useState('')
+  const [editingTaskId, setEditingTaskId] = useState(null)
 
-  // Save to localStorage whenever tasks change
-  useEffect(() => {
-    localStorage.setItem('workTasks', JSON.stringify(workTasks))
-  }, [workTasks])
+  // Enhanced task state with unique IDs and source tracking
+  const [allTasks, setAllTasks] = useState(() => {
+    const savedTasks = localStorage.getItem('allTasks');
+    return savedTasks ? JSON.parse(savedTasks) : [];
+  });
 
+  // Task list states derived from allTasks
+  const [workTasks, setWorkTasks] = useState([]);
+  const [privateTasks, setPersonalTasks] = useState([]);
+  const [workWaitingTasks, setWorkWaitingTasks] = useState([]);
+  const [privateWaitingTasks, setPersonalWaitingTasks] = useState([]);
+
+  // Effect to update filtered task lists when allTasks changes
   useEffect(() => {
-    localStorage.setItem('privateTasks', JSON.stringify(privateTasks))
-  }, [privateTasks])
+    // Filter work todo tasks
+    const workTodoTasks = allTasks.filter(task => 
+      task.type === 'work' && task.section === 'todo'
+    );
+    setWorkTasks(workTodoTasks);
+    
+    // Filter private todo tasks
+    const privateTodoTasks = allTasks.filter(task => 
+      task.type === 'private' && task.section === 'todo'
+    );
+    setPersonalTasks(privateTodoTasks);
+    
+    // Filter work waiting tasks
+    const workWaitTasks = allTasks.filter(task => 
+      task.type === 'work' && task.section === 'waiting'
+    );
+    setWorkWaitingTasks(workWaitTasks);
+    
+    // Filter private waiting tasks
+    const privateWaitTasks = allTasks.filter(task => 
+      task.type === 'private' && task.section === 'waiting'
+    );
+    setPersonalWaitingTasks(privateWaitTasks);
+    
+    // Save all tasks to localStorage
+    localStorage.setItem('allTasks', JSON.stringify(allTasks));
+  }, [allTasks]);
 
   // Check for tasks to archive every minute
   useEffect(() => {
     const archiveInterval = setInterval(archiveOldTasks, 60000)
     return () => clearInterval(archiveInterval)
-  }, [workTasks, privateTasks])
+  }, [allTasks])
 
   // Function to archive tasks completed more than 24 hours ago
   const archiveOldTasks = () => {
     const twentyFourHoursAgo = Date.now() - (24 * 60 * 60 * 1000)
     
-    setWorkTasks(workTasks.filter(task => 
+    setAllTasks(allTasks.filter(task => 
       !task.completed || !task.completedAt || task.completedAt > twentyFourHoursAgo
-    ))
-    
-    setPrivateTasks(privateTasks.filter(task => 
-      !task.completed || !task.completedAt || task.completedAt > twentyFourHoursAgo
-    ))
+    ));
   }
 
-  // Update handleAddTask to handle notes context
+  // Modified handleAddTask to work with unified task state
   const handleAddTask = (type, taskText) => {
-    if (!taskText.trim()) return
-
-    const task = {
-      id: Date.now(),
+    if (!taskText.trim()) return;
+    
+    const newTask = {
+      id: `task-${Date.now()}`,
       text: taskText,
       completed: false,
-      type: type
-    }
+      type: type,
+      section: 'todo',
+      sourceId: null, // If the task comes from a note, this will have the note's ID
+      noteTaskId: null, // If from a note, this will have the task's ID in the note
+      createdAt: Date.now()
+    };
+    
+    setAllTasks(prev => [...prev, newTask]);
+  };
 
-    if (activeTab === 'work') {
-      setWorkTasks([task, ...workTasks])
+  // Improve findTaskByNoteRef to handle different ID formats
+  const findTaskByNoteRef = (noteId, noteTaskId) => {
+    console.log('Finding task by note ref:', { noteId, noteTaskId });
+    
+    if (!noteId || !noteTaskId) {
+      console.warn('Missing parameters for findTaskByNoteRef:', { noteId, noteTaskId });
+      return null;
+    }
+    
+    // Handle case where noteTaskId is an object
+    const taskIdToFind = typeof noteTaskId === 'object' ? noteTaskId.noteTaskId : noteTaskId;
+    
+    if (!taskIdToFind) {
+      console.warn('Invalid noteTaskId format:', noteTaskId);
+      return null;
+    }
+    
+    // Try to find an exact match first
+    let task = allTasks.find(task => 
+      task.sourceId === noteId && task.noteTaskId === taskIdToFind
+    );
+    
+    // If no exact match, try a partial match (for complex IDs)
+    if (!task) {
+      task = allTasks.find(task => 
+        task.sourceId === noteId && 
+        task.noteTaskId && 
+        (task.noteTaskId.includes(taskIdToFind) || taskIdToFind.includes(task.noteTaskId))
+      );
+    }
+    
+    if (task) {
+      console.log('Found task by note ref:', task);
+      return task;
     } else {
-      setPrivateTasks([task, ...privateTasks])
-    }
-  }
-
-  // Function to toggle task completion
-  const toggleComplete = (taskId) => {
-    const updateTask = task => {
-      if (task.id === taskId) {
-        const newCompleted = !task.completed
-        return {
-          ...task,
-          completed: newCompleted,
-          completedAt: newCompleted ? Date.now() : null
-        }
-      }
-      return task
-    }
-
-    if (activeTab === 'work') {
-      setWorkTasks(workTasks.map(updateTask))
-    } else {
-      setPrivateTasks(privateTasks.map(updateTask))
-    }
-  }
-
-  // Update delete task to include confirmation
-  const deleteTask = (taskId) => {
-    if (activeTab === 'work') {
-      setWorkTasks(workTasks.filter(task => task.id !== taskId));
-    } else {
-      setPrivateTasks(privateTasks.filter(task => task.id !== taskId));
+      console.warn('No task found for note ref:', { noteId, taskIdToFind });
+      return null;
     }
   };
 
-  // Add function to check if task will be archived soon
-  const willBeArchivedSoon = (task) => {
-    if (!task.completed || !task.completedAt) return false
-    const timeLeft = task.completedAt + (24 * 60 * 60 * 1000) - Date.now()
-    return timeLeft < (60 * 60 * 1000) // Less than 1 hour left
-  }
+  // Improve updateTaskComplete to handle task updates from notes
+  const updateTaskComplete = (taskId, completed) => {
+    console.log('Updating task completion:', { taskId, completed });
+    
+    // Find the task to get its current state
+    const task = allTasks.find(t => t.id === taskId);
+    if (!task) {
+      console.warn('Task not found for update:', taskId);
+      return false;
+    }
+    
+    // Only update if the state is different
+    if (task.completed === completed) {
+      console.log('Task already in desired state:', { taskId, completed });
+      return true;
+    }
+    
+    console.log('Changing task completion state:', {
+      taskId,
+      from: task.completed,
+      to: completed
+    });
+    
+    setAllTasks(prevTasks => {
+      const updatedTasks = prevTasks.map(t => {
+        if (t.id === taskId) {
+          return {
+            ...t,
+            completed: completed,
+            completedAt: completed ? Date.now() : null
+          };
+        }
+        return t;
+      });
+      
+      // Save to localStorage
+      localStorage.setItem('allTasks', JSON.stringify(updatedTasks));
+      
+      return updatedTasks;
+    });
+    
+    // Log the task's note references if it has any
+    if (task.sourceId && task.noteTaskId) {
+      console.log('Updated task has note references:', {
+        sourceId: task.sourceId,
+        noteTaskId: task.noteTaskId,
+        newState: completed
+      });
+    }
+    
+    return true;
+  };
+
+  // Improve addWorkTask to handle task creation from notes
+  const addWorkTask = (taskText, type, section, sourceInfo = null) => {
+    console.log('App: Adding task to unified list:', { taskText, type, section, sourceInfo });
+    
+    if (!taskText) {
+      console.warn('Empty task text, not adding');
+      return null;
+    }
+    
+    // Normalize sourceInfo to handle both object and string formats
+    let normalizedSourceInfo = sourceInfo;
+    
+    // If sourceInfo is a string (direct noteTaskId), convert it to object format
+    if (typeof sourceInfo === 'string') {
+      normalizedSourceInfo = {
+        noteId: activeNote?.id || null,
+        noteTaskId: sourceInfo
+      };
+    }
+    
+    // Check if this task already exists (to prevent duplicates)
+    if (normalizedSourceInfo && normalizedSourceInfo.noteId && normalizedSourceInfo.noteTaskId) {
+      const existingTask = findTaskByNoteRef(
+        normalizedSourceInfo.noteId, 
+        normalizedSourceInfo.noteTaskId
+      );
+      
+      if (existingTask) {
+        console.log('Task already exists, updating if needed:', existingTask);
+        
+        // If the task exists but type/section changed, update it instead of creating new
+        if (existingTask.type !== type || existingTask.section !== section) {
+          const updatedTasks = allTasks.map(task => {
+            if (task.id === existingTask.id) {
+              return { ...task, type, section };
+            }
+            return task;
+          });
+          
+          setAllTasks(updatedTasks);
+          localStorage.setItem('allTasks', JSON.stringify(updatedTasks));
+          return existingTask.id; // Return existing ID for reference
+        }
+        
+        return existingTask.id; // Already exists, no changes needed
+      }
+    }
+    
+    // Create a new task with unique ID
+    const newTask = {
+      id: `task-${Date.now()}-${Math.floor(Math.random() * 1000)}`,
+      text: taskText,
+      completed: false,
+      type,
+      section,
+      sourceId: normalizedSourceInfo?.noteId || null,
+      noteTaskId: normalizedSourceInfo?.noteTaskId || null,
+      createdAt: Date.now()
+    };
+    
+    console.log('Creating new task:', newTask);
+    
+    setAllTasks(prev => {
+      const newTasks = [...prev, newTask];
+      localStorage.setItem('allTasks', JSON.stringify(newTasks));
+      return newTasks;
+    });
+    
+    return newTask.id; // Return the ID so it can be referenced
+  };
+
+  // Update toggleComplete to sync with notes and return the updated status
+  const toggleComplete = (taskId) => {
+    console.log('Toggling task completion:', taskId);
+    
+    let newCompletedState = false;
+    let taskToUpdate = null;
+    
+    // Find the task first to get its current state and note references
+    const task = allTasks.find(t => t.id === taskId);
+    if (task) {
+      newCompletedState = !task.completed;
+      taskToUpdate = task;
+    } else {
+      console.warn('Task not found for toggle:', taskId);
+      return false;
+    }
+    
+    setAllTasks(prevTasks => {
+      const updatedTasks = prevTasks.map(task => {
+        if (task.id === taskId) {
+          return {
+            ...task,
+            completed: newCompletedState,
+            completedAt: newCompletedState ? Date.now() : null
+          };
+        }
+        return task;
+      });
+      
+      // Save to localStorage
+      localStorage.setItem('allTasks', JSON.stringify(updatedTasks));
+      
+      return updatedTasks;
+    });
+    
+    // Log the task's note references if it has any
+    if (taskToUpdate && taskToUpdate.sourceId && taskToUpdate.noteTaskId) {
+      console.log('Task has note references:', {
+        sourceId: taskToUpdate.sourceId,
+        noteTaskId: taskToUpdate.noteTaskId,
+        newState: newCompletedState
+      });
+    }
+    
+    return newCompletedState;
+  };
+
+  // Update task list or section
+  const updateTaskTypeAndSection = (taskId, newType, newSection) => {
+    const updatedTasks = allTasks.map(task => {
+      if (task.id === taskId) {
+        return { ...task, type: newType, section: newSection };
+      }
+      return task;
+    });
+    
+    setAllTasks(updatedTasks);
+  };
+
+  // Update task text
+  const updateTaskText = (taskId, newText) => {
+    const updatedTasks = allTasks.map(task => {
+      if (task.id === taskId) {
+        return { ...task, text: newText };
+      }
+      return task;
+    });
+    
+    setAllTasks(updatedTasks);
+  };
+
+  // Delete task
+  const deleteTask = (taskId) => {
+    setAllTasks(prev => prev.filter(task => task.id !== taskId));
+  };
 
   // Helper function to sort tasks (completed at bottom)
   const sortTasks = tasks => {
@@ -121,7 +356,7 @@ function App() {
     })
   }
 
-  // Update getTasksByType to simply filter by type without sorting
+  // Get tasks by type
   const getTasksByType = (tasks, type) => {
     return tasks.filter(task => task.type === type);
   }
@@ -137,48 +372,17 @@ function App() {
   // Update handleDrop function with simpler logic
   const handleDrop = (e, targetTaskId, targetType) => {
     e.preventDefault();
-    const draggedTaskId = Number(e.dataTransfer.getData('taskId'));
+    const draggedTaskId = e.dataTransfer.getData('taskId');
     const draggedType = e.dataTransfer.getData('taskType');
     
     if (draggedTaskId === targetTaskId) return;
 
-    const isWork = activeTab === 'work';
-    const tasks = isWork ? [...workTasks] : [...privateTasks];
-    const setTasks = isWork ? setWorkTasks : setPrivateTasks;
-
     // Find the task we're moving
-    const draggedTask = tasks.find(t => t.id === draggedTaskId);
+    const draggedTask = allTasks.find(t => t.id === draggedTaskId);
     if (!draggedTask) return;
 
-    // Create new tasks array without the dragged task
-    const newTasks = tasks.filter(t => t.id !== draggedTaskId);
-
-    // Create a new task object with updated type
-    const taskToInsert = { ...draggedTask, type: targetType };
-
-    // Get all tasks of the target type and completion status
-    const sectionTasks = newTasks.filter(t => 
-      t.type === targetType && 
-      t.completed === taskToInsert.completed
-    );
-
-    if (targetTaskId) {
-      // Insert at specific position
-      const targetIndex = newTasks.findIndex(t => t.id === targetTaskId);
-      newTasks.splice(targetIndex, 0, taskToInsert);
-    } else if (sectionTasks.length === 0) {
-      // If section is empty, add at the start of the type section
-      const firstTypeTask = newTasks.find(t => t.type === targetType);
-      const insertIndex = firstTypeTask ? newTasks.indexOf(firstTypeTask) : newTasks.length;
-      newTasks.splice(insertIndex, 0, taskToInsert);
-    } else {
-      // Add to end of section
-      const lastSectionTask = sectionTasks[sectionTasks.length - 1];
-      const insertIndex = newTasks.indexOf(lastSectionTask) + 1;
-      newTasks.splice(insertIndex, 0, taskToInsert);
-    }
-
-    setTasks(newTasks);
+    // Update task type/section
+    updateTaskTypeAndSection(draggedTaskId, targetType, draggedTask.section);
   };
 
   // Add keyboard shortcuts
@@ -187,12 +391,12 @@ function App() {
       // Ctrl/Cmd + / to focus search
       if ((e.ctrlKey || e.metaKey) && e.key === '/') {
         e.preventDefault()
-        document.querySelector('.search-input').focus()
+        document.querySelector('.search-input')?.focus()
       }
       // Ctrl/Cmd + N to focus new task input
       if ((e.ctrlKey || e.metaKey) && e.key === 'n') {
         e.preventDefault()
-        document.querySelector('.add-task-form input[type="text"]').focus()
+        document.querySelector('.add-task-form input[type="text"]')?.focus()
       }
       // 1 or 2 to switch tabs
       if (document.activeElement.tagName === 'BODY') {
@@ -205,33 +409,20 @@ function App() {
     return () => window.removeEventListener('keydown', handleKeyPress)
   }, [])
 
-  // Update getTaskCount to only count main tasks
+  // Update getTaskCount to consider both type and section
   const getTaskCount = (tasks, type) => {
     return tasks.filter(task => 
       task.type === type && 
-      !task.completed && 
-      !task.parentId // Only count tasks without a parent
+      !task.completed
     ).length
   }
 
-  // Update the updateTaskText function
-  const updateTaskText = (taskId, newText) => {
-    const updateTasks = tasks => tasks.map(task => 
-      task.id === taskId 
-        ? { ...task, text: newText }
-        : task
-    )
-
-    if (activeTab === 'work') {
-      setWorkTasks(updateTasks(workTasks))
-    } else {
-      setPrivateTasks(updateTasks(privateTasks))
-    }
-  }
-
   // Update TaskList component to handle drops better
-  const TaskList = ({ tasks, type }) => {
-    const filteredTasks = tasks.filter(task => task.type === type);
+  const TaskList = ({ tasks, type, section = 'todo' }) => {
+    // Update the filtering to check both type and section
+    const filteredTasks = tasks.filter(task => 
+      task.type === type && task.section === section
+    );
     const uncompletedTasks = filteredTasks.filter(task => !task.completed);
     const completedTasks = filteredTasks.filter(task => task.completed);
 
@@ -468,6 +659,35 @@ function App() {
     return () => clearInterval(interval)
   }, [isTimerRunning, timeLeft])
 
+  // Sign up
+  const signUp = async (email, password) => {
+    const { user, error } = await supabase.auth.signUp({
+      email,
+      password,
+    })
+    return { user, error }
+  }
+
+  // Sign in
+  const signIn = async (email, password) => {
+    const { user, error } = await supabase.auth.signInWithPassword({
+      email,
+      password,
+    })
+    return { user, error }
+  }
+
+  // If still loading auth state, show loading spinner
+  if (loading) {
+    return <LoadingSpinner message="Loading your account..." fullScreen={true} />;
+  }
+
+  // If no user is logged in, show auth container
+  if (!user) {
+    return <AuthContainer />;
+  }
+
+  // If authenticated, show the main app
   return (
     <div className="app">
       <nav className="app-sidebar">
@@ -538,17 +758,23 @@ function App() {
               onClick={() => setIsTimerRunning(!isTimerRunning)}
             >
               {isTimerRunning ? 'Pause' : 'Start'}
-            </button>
+        </button>
           </NavItem>
         </div>
 
-        {/* Profile moved to bottom */}
+        {/* Update profile section to show actual user info */}
         <div className="app-sidebar-header">
           <div className="user-avatar">
-            R
+            {user.email ? user.email.charAt(0).toUpperCase() : 'U'}
           </div>
           <div className="user-info">
-            <h3 className="user-name">Rosenlykke</h3>
+            <h3 className="user-name">{user.email}</h3>
+            <button 
+              className="sign-out-button"
+              onClick={signOut}
+            >
+              Sign Out
+            </button>
           </div>
         </div>
       </nav>
@@ -559,7 +785,10 @@ function App() {
             activeFolder={noteFolders.find(folder => 
               `notes-${folder.toLowerCase().replace(/\s+/g, '-')}` === activeTab
             ) || 'All Notes'}
-            onAddWorkTask={(taskText) => handleAddTask('todo', taskText, null, true)}
+            onAddWorkTask={addWorkTask}
+            findTaskByNoteRef={findTaskByNoteRef}
+            updateTaskComplete={updateTaskComplete}
+            allTasks={allTasks}
           />
         ) : activeTab === 'pomodoro' ? (
           <Pomodoro />
@@ -573,7 +802,9 @@ function App() {
                   </span>
                   {activeTab === 'work' ? 'Work Tasks' : 'Private Tasks'}
                   <span className="task-count">
-                    {getTaskCount(activeTab === 'work' ? workTasks : privateTasks, 'todo')}
+                    {activeTab === 'work' 
+                      ? getTaskCount(allTasks.filter(t => t.type === 'work' && t.section === 'todo'), 'work')
+                      : getTaskCount(allTasks.filter(t => t.type === 'private' && t.section === 'todo'), 'private')}
                   </span>
                 </h2>
                 <div className="quick-add">
@@ -591,7 +822,8 @@ function App() {
                     onKeyPress={(e) => {
                       if (e.key === 'Enter' && newTodoTask.trim()) {
                         e.preventDefault();
-                        handleAddTask('todo', newTodoTask);
+                        // Use addWorkTask instead of handleAddTask for consistent task creation
+                        addWorkTask(newTodoTask, activeTab, 'todo');
                         setNewTodoTask('');
                       }
                     }}
@@ -600,8 +832,9 @@ function App() {
                   />
                 </div>
                 <TaskList 
-                  tasks={getTasksByType(activeTab === 'work' ? workTasks : privateTasks, 'todo')}
-                  type="todo"
+                  tasks={allTasks}
+                  type={activeTab}
+                  section="todo"
                 />
               </div>
 
@@ -610,7 +843,9 @@ function App() {
                   <span role="img" aria-label="waiting">⏳</span>
                   {activeTab === 'work' ? 'Work Waiting' : 'Private Waiting'}
                   <span className="task-count">
-                    {getTaskCount(activeTab === 'work' ? workTasks : privateTasks, 'waiting')}
+                    {activeTab === 'work'
+                      ? getTaskCount(allTasks.filter(t => t.type === 'work' && t.section === 'waiting'), 'work')
+                      : getTaskCount(allTasks.filter(t => t.type === 'private' && t.section === 'waiting'), 'private')}
                   </span>
                 </h2>
                 <div className="quick-add">
@@ -620,8 +855,9 @@ function App() {
                     onChange={(e) => setNewWaitingTask(e.target.value)}
                     onKeyPress={(e) => {
                       if (e.key === 'Enter' && newWaitingTask.trim()) {
-                        handleAddTask('waiting', newWaitingTask)
-                        setNewWaitingTask('')
+                        const type = activeTab; // 'work' or 'private'
+                        addWorkTask(newWaitingTask, type, 'waiting');
+                        setNewWaitingTask('');
                       }
                     }}
                     placeholder="Add waiting task"
@@ -629,8 +865,9 @@ function App() {
                   />
                 </div>
                 <TaskList 
-                  tasks={getTasksByType(activeTab === 'work' ? workTasks : privateTasks, 'waiting')}
-                  type="waiting"
+                  tasks={allTasks}
+                  type={activeTab}
+                  section="waiting"
                 />
               </div>
             </div>
